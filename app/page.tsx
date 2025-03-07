@@ -6,10 +6,9 @@ const HomePage = () => {
   return (
     <>
       <ResponsiveNav />
-      <div className='has-[2000px]'>
+      <div>
         <Home />
       </div>
-
     </>
 
   )

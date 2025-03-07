@@ -1,38 +1,16 @@
 "use client";
+import { navLinks } from '@/constant/constant';
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { FaUserCircle } from 'react-icons/fa'
 import { FaHouse } from 'react-icons/fa6'
 import { HiBars3BottomRight } from 'react-icons/hi2';
 
-export const navLinks = [
-    {
-        id: 1,
-        name: 'Home',
-        url: '#',
-    },
-    {
-        id: 2,
-        name: 'Listing',
-        url: '#',
-    },
-    {
-        id: 3,
-        name: 'Property',
-        url: '#',
-    },
-    {
-        id: 4,
-        name: 'Blog',
-        url: '#',
-    },
-    {
-        id: 5,
-        name: 'Contact',
-        url: '#',
-    },
-]
-const NavbarHome = () => {
+type Props = {
+    openNav: () => void,
+}
+
+const NavbarHome = ({ openNav }: Props) => {
     const [navBg, setNavBg] = useState(false);
     useEffect(() => {
         const handler = () => {
@@ -43,7 +21,7 @@ const NavbarHome = () => {
         return () => window.removeEventListener('scroll', handler);
     }, []);
     return (
-        <div className={'fixed ${navBg ? "bg-gray-800": ""} h-[10vh] z-[100] w-full transition-all duration-200 bg-gray-700'}>
+        <div className={`fixed ${navBg ? "bg-gray-800" : ""} h-[10vh] z-[100] w-full transition-all duration-200`}>
             <div className='flex items-center h-full justify-between w-[95%] sm:w-[90%] xl:w-[80%] mx-auto'>
                 {/* Logo */}
                 <div className='flex items-center space-x-2'>
@@ -71,7 +49,7 @@ const NavbarHome = () => {
                         <p className='font-bold text-xs sm:text-base'>Iniciar Sesion / Registrarse</p>
                     </div>
                     {/*Button*/}
-                    <HiBars3BottomRight className='sm:w-8 sm:h-8 w-6 h-6 cursor-pointer text-white lg:hidden' />
+                    <HiBars3BottomRight onClick={openNav} className='sm:w-8 sm:h-8 w-6 h-6 cursor-pointer text-white lg:hidden' />
                 </div>
             </div>
         </div>
