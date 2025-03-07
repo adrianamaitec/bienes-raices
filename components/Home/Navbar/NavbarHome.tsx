@@ -1,11 +1,11 @@
 "use client";
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FaUserCircle } from 'react-icons/fa'
 import { FaHouse } from 'react-icons/fa6'
 import { HiBars3BottomRight } from 'react-icons/hi2';
 
-const navLinks = [
+export const navLinks = [
     {
         id: 1,
         name: 'Home',
@@ -34,8 +34,16 @@ const navLinks = [
 ]
 const NavbarHome = () => {
     const [navBg, setNavBg] = useState(false);
+    useEffect(() => {
+        const handler = () => {
+            if (window.scrollY >= 90) setNavBg(true);
+            if (window.scrollY < 90) setNavBg(false);
+        }
+        window.addEventListener('scroll', handler);
+        return () => window.removeEventListener('scroll', handler);
+    }, []);
     return (
-        <div className='fixed h-[10vh] z-[100] w-full transition-all duration-200 bg-black'>
+        <div className={'fixed ${navBg ? "bg-gray-800": ""} h-[10vh] z-[100] w-full transition-all duration-200 bg-gray-700'}>
             <div className='flex items-center h-full justify-between w-[95%] sm:w-[90%] xl:w-[80%] mx-auto'>
                 {/* Logo */}
                 <div className='flex items-center space-x-2'>
