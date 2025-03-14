@@ -1,13 +1,15 @@
 import { supabase } from './supabaseClient';
 
-export const fetchApartments = async () => {
+import { CreateDepartmentParams, Department, SupabaseResponse } from './types/types';
+
+export const fetchDepartments = async (): Promise<SupabaseResponse<Department[]>> => {
     const { data, error } = await supabase.from('departments').select('*');
-    if (error) throw error;
-    return data;
+    return { data, error };
 };
 
-export const createApartment = async (apartmentData: any) => {
-    const { data, error } = await supabase.from('departments').insert([apartmentData]);
-    if (error) throw error;
-    return data;
+export const createDepartment = async (
+    department: CreateDepartmentParams
+): Promise<SupabaseResponse<Department>> => {
+    const { data, error } = await supabase.from('departments').insert([department]).single();
+    return { data, error };
 };
