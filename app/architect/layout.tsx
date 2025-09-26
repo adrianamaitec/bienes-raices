@@ -15,7 +15,7 @@ export default function ArchitectLayout({
 
     const navigation = [
         { name: 'Dashboard', href: '/architect/dashboard', icon: '🏠' },
-        { name: 'Departamentos', href: '/architect/properties', icon: '🏢' },
+        { name: 'Departamentos', href: '/architect/apartments', icon: '🏢' },
         { name: 'Usuarios', href: '/architect/users', icon: '👥' },
         { name: 'Perfil', href: '/architect/profile', icon: '👤' },
     ];
@@ -39,8 +39,8 @@ export default function ArchitectLayout({
                                         key={item.name}
                                         href={item.href}
                                         className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${isActive(item.href)
-                                                ? 'bg-blue-100 text-blue-600'
-                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                            ? 'bg-blue-100 text-blue-600'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                             }`}
                                         onClick={() => setSidebarOpen(false)}
                                     >
@@ -67,8 +67,8 @@ export default function ArchitectLayout({
                                     key={item.name}
                                     href={item.href}
                                     className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive(item.href)
-                                            ? 'bg-blue-100 text-blue-600'
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                        ? 'bg-blue-100 text-blue-600'
+                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                         }`}
                                 >
                                     <span className="mr-3 text-lg">{item.icon}</span>
