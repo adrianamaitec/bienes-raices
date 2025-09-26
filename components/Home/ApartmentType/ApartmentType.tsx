@@ -1,6 +1,5 @@
 import React from 'react'
 import SectionHeading from './../../Helper/SectionHeading';
-import { fetchApartments } from '@/lib/database';
 import ApartmentTypeCard from './ApartmentTypeCard';
 const ApartmentType = () => {
     return (

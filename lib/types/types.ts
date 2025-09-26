@@ -23,6 +23,8 @@ export type Department = {
     street: string;
     zone: string;
     floor: number;
+    bed: number;
+    bathrooms: number
     latitude: number;
     longitude: number;
     image_url?: string; // Opcional
