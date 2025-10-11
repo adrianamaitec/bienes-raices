@@ -2,18 +2,54 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabaseClient';
 
 export default function LoginPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Aquí irá la lógica de autenticación con tu backend
-        console.log('Login attempt:', formData);
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password,
+            });
+
+            if (error) {
+                setError(error.message);
+                return;
+            }
+
+            if (data.user) {
+                // Redirigir según el rol del usuario
+                const { data: userData } = await supabase
+                    .from('users')
+                    .select('role')
+                    .eq('id', data.user.id)
+                    .single();
+
+                if (userData?.role === 'architect') {
+                    router.push('/architect/dashboard');
+                } else {
+                    router.push('/client/dashboard');
+                }
+            }
+        } catch (error: any) {
+            setError('Error al iniciar sesión. Intenta nuevamente.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,6 +57,23 @@ export default function LoginPage() {
             ...formData,
             [e.target.name]: e.target.value
         });
+    };
+
+    const handleSocialLogin = async (provider: 'google' | 'github') => {
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider,
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`
+                }
+            });
+
+            if (error) {
+                setError(error.message);
+            }
+        } catch (error: any) {
+            setError('Error al iniciar sesión con ' + provider);
+        }
     };
 
     return (
@@ -33,11 +86,26 @@ export default function LoginPage() {
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
                         ¿No tienes cuenta?{' '}
-                        <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
+                        <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
                             Regístrate aquí
                         </Link>
                     </p>
                 </div>
+
+                {/* Mensaje de error */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <span className="text-red-400">⚠️</span>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                                <div className="text-sm text-red-700 mt-1">{error}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Form */}
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -55,6 +123,7 @@ export default function LoginPage() {
                                 placeholder="Correo electrónico"
                                 value={formData.email}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
 
@@ -71,6 +140,7 @@ export default function LoginPage() {
                                 placeholder="Contraseña"
                                 value={formData.password}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
                     </div>
@@ -83,6 +153,7 @@ export default function LoginPage() {
                                 name="remember-me"
                                 type="checkbox"
                                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                disabled={loading}
                             />
                             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                                 Recordarme
@@ -90,9 +161,9 @@ export default function LoginPage() {
                         </div>
 
                         <div className="text-sm">
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                            <Link href="/auth/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
                                 ¿Olvidaste tu contraseña?
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -100,9 +171,17 @@ export default function LoginPage() {
                     <div>
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200"
+                            disabled={loading}
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Iniciar Sesión
+                            {loading ? (
+                                <div className="flex items-center">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Iniciando sesión...
+                                </div>
+                            ) : (
+                                'Iniciar Sesión'
+                            )}
                         </button>
                     </div>
 
@@ -121,13 +200,17 @@ export default function LoginPage() {
                         <div className="mt-6 grid grid-cols-2 gap-3">
                             <button
                                 type="button"
-                                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                                onClick={() => handleSocialLogin('google')}
+                                disabled={loading}
+                                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                             >
                                 <span>Google</span>
                             </button>
                             <button
                                 type="button"
-                                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                                onClick={() => handleSocialLogin('github')}
+                                disabled={loading}
+                                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                             >
                                 <span>GitHub</span>
                             </button>
