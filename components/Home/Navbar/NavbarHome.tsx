@@ -44,10 +44,12 @@ const NavbarHome = ({ openNav }: Props) => {
                 {/* Login and menu */}
                 <div className='flex items-center space-x-4'>
                     {/* Login */}
-                    <div className='flex items-center cursor-pointer rounded-full text-white space-x-2 hover:text-red-400 transition-all duration-200'>
-                        <FaUserCircle className='w-5 h-5' />
-                        <p className='font-bold text-xs sm:text-base'>Iniciar Sesion / Registrarse</p>
-                    </div>
+                    <Link href="/login">
+                        <div className='flex items-center cursor-pointer rounded-full text-white space-x-2 hover:text-red-400 transition-all duration-200'>
+                            <FaUserCircle className='w-5 h-5' />
+                            <p className='font-bold text-xs sm:text-base'>Iniciar Sesion / Registrarse</p>
+                        </div>
+                    </Link>
                     {/*Button*/}
                     <HiBars3BottomRight onClick={openNav} className='sm:w-8 sm:h-8 w-6 h-6 cursor-pointer text-white lg:hidden' />
                 </div>

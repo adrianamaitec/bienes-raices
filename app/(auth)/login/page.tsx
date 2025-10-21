@@ -1,4 +1,3 @@
-// app/auth/login/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -8,215 +7,107 @@ import { supabase } from '@/lib/supabaseClient';
 
 export default function LoginPage() {
     const router = useRouter();
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
+    const [formData, setFormData] = useState({ email: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
+        setLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            // 1️⃣ Login en Auth
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
                 email: formData.email,
                 password: formData.password,
             });
 
-            if (error) {
-                setError(error.message);
-                return;
-            }
+            if (signInError) throw signInError;
+            if (!signInData.user) throw new Error('No se encontró el usuario.');
 
-            if (data.user) {
-                // Redirigir según el rol del usuario
-                const { data: userData } = await supabase
-                    .from('users')
-                    .select('role')
-                    .eq('id', data.user.id)
-                    .single();
+            const userId = signInData.user.id;
 
-                if (userData?.role === 'architect') {
-                    router.push('/architect/dashboard');
-                } else {
-                    router.push('/client/dashboard');
-                }
+            // 2️⃣ Obtener rol desde public.users
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', userId)
+                .single();
+
+            if (userError) throw userError;
+
+            // 3️⃣ Redirección según rol
+            const role = userData?.role || 'client';
+            if (role === 'architect') router.push('/architect/dashboard');
+            else if (role === 'admin') router.push('/admin/dashboard');
+            else router.push('/client/dashboard');
+
+        } catch (err: any) {
+            console.error('💥 Error en login:', err);
+            if (err.message.includes('Invalid login credentials')) {
+                setError('Correo o contraseña incorrectos.');
+            } else {
+                setError('Error al iniciar sesión. Intenta nuevamente.');
             }
-        } catch (error: any) {
-            setError('Error al iniciar sesión. Intenta nuevamente.');
         } finally {
             setLoading(false);
         }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleSocialLogin = async (provider: 'google' | 'github') => {
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider,
-                options: {
-                    redirectTo: `${window.location.origin}/auth/callback`
-                }
-            });
-
-            if (error) {
-                setError(error.message);
-            }
-        } catch (error: any) {
-            setError('Error al iniciar sesión con ' + provider);
-        }
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                {/* Header */}
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Iniciar Sesión
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        ¿No tienes cuenta?{' '}
-                        <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-                            Regístrate aquí
-                        </Link>
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+            <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
+                <h2 className="text-2xl font-bold text-center mb-4">Iniciar sesión</h2>
 
-                {/* Mensaje de error */}
                 {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                        <div className="flex">
-                            <div className="flex-shrink-0">
-                                <span className="text-red-400">⚠️</span>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                                <div className="text-sm text-red-700 mt-1">{error}</div>
-                            </div>
-                        </div>
+                    <div className="bg-red-50 text-red-600 text-sm p-3 rounded mb-3">
+                        ⚠️ {error}
                     </div>
                 )}
 
-                {/* Form */}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        {/* Email Input */}
-                        <div>
-                            <label htmlFor="email" className="sr-only">Email</label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Correo electrónico"
-                                value={formData.email}
-                                onChange={handleChange}
-                                disabled={loading}
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Correo electrónico"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        disabled={loading}
+                        className="w-full border rounded p-2"
+                    />
 
-                        {/* Password Input */}
-                        <div>
-                            <label htmlFor="password" className="sr-only">Contraseña</label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete="current-password"
-                                required
-                                className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Contraseña"
-                                value={formData.password}
-                                onChange={handleChange}
-                                disabled={loading}
-                            />
-                        </div>
-                    </div>
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Contraseña"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        disabled={loading}
+                        className="w-full border rounded p-2"
+                    />
 
-                    {/* Remember Me & Forgot Password */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <input
-                                id="remember-me"
-                                name="remember-me"
-                                type="checkbox"
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                disabled={loading}
-                            />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                                Recordarme
-                            </label>
-                        </div>
-
-                        <div className="text-sm">
-                            <Link href="/auth/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                                ¿Olvidaste tu contraseña?
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (
-                                <div className="flex items-center">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Iniciando sesión...
-                                </div>
-                            ) : (
-                                'Iniciar Sesión'
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-gray-50 text-gray-500">O continúa con</span>
-                            </div>
-                        </div>
-
-                        {/* Social Login Buttons */}
-                        <div className="mt-6 grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => handleSocialLogin('google')}
-                                disabled={loading}
-                                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                <span>Google</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleSocialLogin('github')}
-                                disabled={loading}
-                                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                <span>GitHub</span>
-                            </button>
-                        </div>
-                    </div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+                    >
+                        {loading ? 'Iniciando sesión...' : 'Entrar'}
+                    </button>
                 </form>
+
+                <p className="text-center text-sm mt-3">
+                    ¿No tienes cuenta?{' '}
+                    <Link href="/register" className="text-blue-600 hover:underline">
+                        Regístrate aquí
+                    </Link>
+                </p>
             </div>
         </div>
     );
