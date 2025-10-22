@@ -81,7 +81,7 @@ export default function ArchitectLayout({
                         <div className="flex items-center">
                             <div className="ml-3">
                                 <p className="text-sm font-medium text-gray-700">Arquitecto</p>
-                                <Link href="/auth/login" className="text-xs font-medium text-gray-500 hover:text-gray-700">
+                                <Link href="/login" className="text-xs font-medium text-gray-500 hover:text-gray-700">
                                     Cerrar sesión
                                 </Link>
                             </div>

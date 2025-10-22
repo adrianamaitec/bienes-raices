@@ -8,13 +8,11 @@ interface User {
     id: string;
     first_name: string;
     last_name: string;
-    email: string;
-    phone: string;
     role: 'client' | 'architect' | 'admin';
-    status: 'active' | 'inactive' | 'pending';
+    is_active: boolean;
     created_at: string;
-    last_sign_in_at?: string;
     profile_image_url?: string;
+    email: string;
 }
 
 export default function UsersManagement() {
@@ -31,15 +29,11 @@ export default function UsersManagement() {
         fetchUsers();
     }, []);
 
-    // 🔹 Cargar usuarios reales
+    // 🔹 Obtener usuarios usando RPC
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .order('created_at', { ascending: false });
-
+            const { data, error } = await supabase.rpc('get_users_with_email');
             if (error) throw error;
             setUsers(data || []);
         } catch (err) {
@@ -49,39 +43,24 @@ export default function UsersManagement() {
         }
     };
 
+    // 🔹 Convertir is_active + role en status
+    const mapStatus = (user: User) => {
+        // Arquitectos con is_active = false están "Pendientes"
+        if (user.role === 'architect' && !user.is_active) return 'pending';
+        // Otros usuarios usan is_active normal
+        return user.is_active ? 'active' : 'inactive';
+    };
+
     const filteredUsers = users.filter((user) => {
+        const status = mapStatus(user);
         const matchesSearch =
             user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesType = typeFilter === 'all' || user.role === typeFilter;
-        const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+        const matchesStatus = statusFilter === 'all' || status === statusFilter;
         return matchesSearch && matchesType && matchesStatus;
     });
-
-    const handleStatusUpdate = (user: User, status: 'active' | 'inactive' | 'pending') => {
-        setUserToUpdate(user);
-        setNewStatus(status);
-        setShowStatusModal(true);
-    };
-
-    const confirmStatusUpdate = async () => {
-        if (!userToUpdate) return;
-        try {
-            const { error } = await supabase
-                .from('users')
-                .update({ status: newStatus })
-                .eq('id', userToUpdate.id);
-
-            if (error) throw error;
-            setUsers((prev) =>
-                prev.map((u) => (u.id === userToUpdate.id ? { ...u, status: newStatus } : u))
-            );
-            setShowStatusModal(false);
-        } catch (error) {
-            console.error('Error actualizando estado:', error);
-        }
-    };
 
     const formatDate = (date: string | null) => {
         if (!date) return '—';
@@ -104,9 +83,7 @@ export default function UsersManagement() {
             pending: 'Pendiente',
         };
         return (
-            <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status]}`}
-            >
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status]}`}>
                 {labels[status]}
             </span>
         );
@@ -124,12 +101,34 @@ export default function UsersManagement() {
             admin: 'Admin',
         };
         return (
-            <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[role]}`}
-            >
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[role]}`}>
                 {labels[role]}
             </span>
         );
+    };
+
+    const handleStatusUpdate = (user: User, status: 'active' | 'inactive') => {
+        setUserToUpdate(user);
+        setNewStatus(status);
+        setShowStatusModal(true);
+    };
+
+    const confirmStatusUpdate = async () => {
+        if (!userToUpdate) return;
+        try {
+            const { error } = await supabase
+                .from('users')
+                .update({ is_active: newStatus === 'active' })
+                .eq('id', userToUpdate.id);
+
+            if (error) throw error;
+            setUsers((prev) =>
+                prev.map((u) => (u.id === userToUpdate.id ? { ...u, is_active: newStatus === 'active' } : u))
+            );
+            setShowStatusModal(false);
+        } catch (error) {
+            console.error('Error actualizando estado:', error);
+        }
     };
 
     return (
@@ -138,9 +137,7 @@ export default function UsersManagement() {
             <div className="mb-8 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Gestión de Usuarios</h1>
-                    <p className="text-gray-600 mt-1">
-                        Visualiza y administra los usuarios del sistema.
-                    </p>
+                    <p className="text-gray-600 mt-1">Visualiza y administra los usuarios del sistema.</p>
                 </div>
                 <Link
                     href="/architect/users/invite"
@@ -231,10 +228,8 @@ export default function UsersManagement() {
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{u.email}</td>
                                     <td className="px-6 py-4">{getRoleBadge(u.role)}</td>
-                                    <td className="px-6 py-4">{getStatusBadge(u.status)}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
-                                        {formatDate(u.created_at)}
-                                    </td>
+                                    <td className="px-6 py-4">{getStatusBadge(mapStatus(u))}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(u.created_at)}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2">
                                             <Link
@@ -244,13 +239,17 @@ export default function UsersManagement() {
                                             >
                                                 👁️
                                             </Link>
-                                            <button
-                                                onClick={() => handleStatusUpdate(u, u.status === 'active' ? 'inactive' : 'active')}
-                                                className="text-gray-600 hover:text-gray-900"
-                                                title="Cambiar estado"
-                                            >
-                                                ⚙️
-                                            </button>
+                                            {mapStatus(u) !== 'pending' && (
+                                                <button
+                                                    onClick={() =>
+                                                        handleStatusUpdate(u, u.is_active ? 'inactive' : 'active')
+                                                    }
+                                                    className="text-gray-600 hover:text-gray-900"
+                                                    title="Cambiar estado"
+                                                >
+                                                    ⚙️
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -260,7 +259,7 @@ export default function UsersManagement() {
                 )}
             </div>
 
-            {/* Modal de confirmación */}
+            {/* Modal */}
             {showStatusModal && userToUpdate && (
                 <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full text-center">
