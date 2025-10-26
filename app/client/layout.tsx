@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/useAuth'
 
 export default function ClientLayout({
     children,
@@ -12,7 +13,7 @@ export default function ClientLayout({
 }) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const pathname = usePathname();
-
+    const { signOut } = useAuth()
     const navigation = [
         { name: 'Inicio', href: '/client/dashboard', icon: '🏠' },
         { name: 'Favoritos', href: '/client/favorites', icon: '❤️' },
@@ -60,12 +61,12 @@ export default function ClientLayout({
                             </button>
 
                             {/* Cerrar sesión */}
-                            <Link
-                                href="/login"
-                                className="text-sm text-gray-500 hover:text-gray-700"
-                            >
-                                Cerrar sesión
-                            </Link>
+                            <button
+                onClick={signOut}
+                className="text-sm text-gray-500 hover:text-gray-800 transition"
+            >
+                Cerrar sesión
+            </button>
 
                             {/* Menú móvil */}
                             <button

@@ -1,8 +1,9 @@
 // app/client/dashboard/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabaseClient';
 
 interface Property {
     id: number;
@@ -30,102 +31,50 @@ export default function ClientDashboard() {
         sortBy: 'newest'
     });
     const [showFilters, setShowFilters] = useState(false);
+    const [properties, setProperties] = useState<Property[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Datos de ejemplo - departamentos disponibles
-    const properties: Property[] = [
-        {
-            id: 1,
-            name: 'Moderno Departamento en Miraflores',
-            address: 'Av. Larco 123, Miraflores, Lima',
-            price: 350000,
-            area: 120,
-            bedrooms: 3,
-            bathrooms: 2,
-            images: ['/img/prop1.jpg'],
-            isFavorite: true,
-            features: ['Vista al mar', 'Piscina', 'Gimnasio', 'Estacionamiento'],
-            status: 'available',
-            architect: 'Ana Martínez',
-            vrTour: true
-        },
-        {
-            id: 2,
-            name: 'Penthouse con Terraza Jardín',
-            address: 'Costa Verde 456, San Isidro',
-            price: 650000,
-            area: 200,
-            bedrooms: 4,
-            bathrooms: 3,
-            images: ['/img/prop2.jpg'],
-            isFavorite: false,
-            features: ['Terraza', 'Jacuzzi', 'Vista 360°', 'Smart Home'],
-            status: 'available',
-            architect: 'Carlos López',
-            vrTour: true
-        },
-        {
-            id: 3,
-            name: 'Loft Minimalista en Barranco',
-            address: 'Bajada de Baños 789, Barranco',
-            price: 220000,
-            area: 80,
-            bedrooms: 1,
-            bathrooms: 1,
-            images: ['/img/prop3.jpg'],
-            isFavorite: false,
-            features: ['Diseño moderno', 'Cocina integral', 'Área de lavado'],
-            status: 'available',
-            architect: 'Laura Rodríguez',
-            vrTour: false
-        },
-        {
-            id: 4,
-            name: 'Departamento Familiar en Surco',
-            address: 'Av. Caminos del Inca 321, Surco',
-            price: 280000,
-            area: 110,
-            bedrooms: 3,
-            bathrooms: 2,
-            images: ['/img/prop4.jpg'],
-            isFavorite: true,
-            features: ['Parque infantil', 'Área BBQ', 'Seguridad 24/7'],
-            status: 'available',
-            architect: 'Pedro Sánchez',
-            vrTour: true
-        },
-        {
-            id: 5,
-            name: 'Departamento Ejecutivo en Centro',
-            address: 'Jr. de la Unión 654, Cercado de Lima',
-            price: 190000,
-            area: 75,
-            bedrooms: 2,
-            bathrooms: 1,
-            images: ['/img/prop5.jpg'],
-            isFavorite: false,
-            features: ['Amoblado', 'Cerca a bancos', 'Ascensor'],
-            status: 'available',
-            architect: 'María González',
-            vrTour: false
-        },
-        {
-            id: 6,
-            name: 'Departamento con Vista al Golf',
-            address: 'Av. Los Incas 987, La Molina',
-            price: 420000,
-            area: 150,
-            bedrooms: 3,
-            bathrooms: 2,
-            images: ['/img/prop6.jpg'],
-            isFavorite: false,
-            features: ['Vista al campo de golf', 'Club house', 'Sauna'],
-            status: 'available',
-            architect: 'Roberto Silva',
-            vrTour: true
-        }
-    ];
+    useEffect(() => {
+        const fetchProperties = async () => {
+            try {
+                setLoading(true);
+                // Traer departamentos y modelos asociados
+                const { data: depts, error: deptError } = await supabase
+                    .from('departments')
+                    .select('*, models(storage_url)')
+                    .order('created_at', { ascending: false });
 
-    // Filtrar y ordenar propiedades
+                if (deptError) throw deptError;
+
+                // Mapear a la estructura Property
+                const mapped: Property[] = (depts || []).map((d: any) => ({
+                    id: d.id,
+                    name: d.name,
+                    address: [d.street, d.zone].filter(Boolean).join(', '),
+                    price: Number(d.price) || 0,
+                    area: d.size || 0,
+                    bedrooms: d.bed || 0,
+                    bathrooms: d.bathrooms || 0,
+                    images: d.image_url ? [d.image_url] : [],
+                    isFavorite: false, // implementar por usuario si lo necesitas
+                    features: (d.features && Array.isArray(d.features)) ? d.features : [], // si tienes un campo features JSON/texto
+                    status: d.status || 'available',
+                    architect: d.architect || 'N/A',
+                    vrTour: Boolean(d.models && d.models.length > 0)
+                }));
+
+                setProperties(mapped);
+            } catch (err) {
+                console.error('Error fetching properties:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProperties();
+    }, []);
+
+    // Filtrar y ordenar en cliente (igual que tu mock original)
     const filteredProperties = properties
         .filter(property =>
             property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -135,8 +84,10 @@ export default function ClientDashboard() {
             )
         )
         .filter(property => {
-            if (filters.bedrooms !== 'all' && property.bedrooms !== parseInt(filters.bedrooms)) {
-                return false;
+            if (filters.bedrooms !== 'all') {
+                // soporta "3" como 3 habitaciones o "3+" — en tu UI usas 3+ texto, así que aquí asumimos igualdad numérica
+                if (filters.bedrooms === '3' && property.bedrooms < 3) return false;
+                if (filters.bedrooms !== '3' && property.bedrooms !== parseInt(filters.bedrooms)) return false;
             }
             if (property.area < filters.minArea || property.area > filters.maxArea) {
                 return false;
@@ -151,7 +102,7 @@ export default function ClientDashboard() {
                 case 'price-low': return a.price - b.price;
                 case 'price-high': return b.price - a.price;
                 case 'area': return b.area - a.area;
-                default: return b.id - a.id; // newest first
+                default: return b.id - a.id; // newest first (según id)
             }
         });
 
@@ -164,27 +115,25 @@ export default function ClientDashboard() {
     };
 
     const toggleFavorite = (id: number) => {
-        // Lógica para agregar/remover de favoritos
-        console.log('Toggle favorite:', id);
+        // TODO: implementar favorito por usuario (tabla favorites o campo user_favorites)
+        setProperties(prev => prev.map(p => p.id === id ? { ...p, isFavorite: !p.isFavorite } : p));
     };
+
+    if (loading) return <div className="text-center py-12">Cargando departamentos...</div>;
 
     return (
         <div>
-            {/* Hero Section */}
+            {/* Hero */}
             <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                    Encuentra tu Departamento Ideal
-                </h1>
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">Encuentra tu Departamento Ideal</h1>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                     Explora nuestra selección de departamentos exclusivos con tours virtuales en 3D.
-                    Vive la experiencia antes de comprar.
                 </p>
             </div>
 
             {/* Barra de búsqueda y filtros */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
                 <div className="flex flex-col md:flex-row gap-4">
-                    {/* Barra de búsqueda */}
                     <div className="flex-1">
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -200,14 +149,12 @@ export default function ClientDashboard() {
                         </div>
                     </div>
 
-                    {/* Botones de acción */}
                     <div className="flex space-x-3">
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                         >
-                            <span className="mr-2">⚙️</span>
-                            Filtros
+                            <span className="mr-2">⚙️</span> Filtros
                         </button>
 
                         <select
@@ -223,7 +170,6 @@ export default function ClientDashboard() {
                     </div>
                 </div>
 
-                {/* Filtros expandidos */}
                 {showFilters && (
                     <div className="mt-6 pt-6 border-t grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
@@ -283,11 +229,9 @@ export default function ClientDashboard() {
                 )}
             </div>
 
-            {/* Resultados de búsqueda */}
+            {/* Resultados */}
             <div className="mb-6 flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">
-                    {filteredProperties.length} Departamentos Encontrados
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900">{filteredProperties.length} Departamentos Encontrados</h2>
                 <div className="text-sm text-gray-600">
                     Ordenado por: {filters.sortBy === 'newest' ? 'Más recientes' :
                         filters.sortBy === 'price-low' ? 'Precio menor' :
@@ -295,32 +239,27 @@ export default function ClientDashboard() {
                 </div>
             </div>
 
-            {/* Grid de departamentos */}
+            {/* Grid */}
             {filteredProperties.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredProperties.map((property) => (
                         <div key={property.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                            {/* Imagen del departamento */}
-                            <div className="relative h-48 bg-gradient-to-br from-blue-400 to-purple-500">
-                                <div className="absolute inset-0 flex items-center justify-center text-white text-6xl">
-                                    🏠
-                                </div>
-
-                                {/* Badges */}
+                            <div className="relative h-48 bg-gray-200 flex items-center justify-center text-white text-6xl overflow-hidden">
+                                {property.images.length > 0 ? (
+                                    // imagen principal
+                                    <img src={property.images[0]} alt={property.name} className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="text-6xl">🏠</div>
+                                )}
                                 <div className="absolute top-3 left-3 flex space-x-2">
                                     {property.vrTour && (
-                                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                            🎮 Tour 3D
-                                        </span>
+                                        <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">🎮 Tour 3D</span>
                                     )}
                                     {property.isFavorite && (
-                                        <span className="bg-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                            ❤️ Favorito
-                                        </span>
+                                        <span className="bg-pink-500 text-white px-2 py-1 rounded-full text-xs font-medium">❤️ Favorito</span>
                                     )}
                                 </div>
 
-                                {/* Botón favorito */}
                                 <button
                                     onClick={() => toggleFavorite(property.id)}
                                     className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-gray-100"
@@ -331,67 +270,38 @@ export default function ClientDashboard() {
                                 </button>
                             </div>
 
-                            {/* Contenido de la tarjeta */}
                             <div className="p-4">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                                        {property.name}
-                                    </h3>
-                                    <span className="text-lg font-bold text-blue-600">
-                                        {formatPrice(property.price)}
-                                    </span>
+                                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{property.name}</h3>
+                                    <span className="text-lg font-bold text-blue-600">{formatPrice(property.price)}</span>
                                 </div>
 
-                                <p className="text-sm text-gray-600 mb-3 line-clamp-1">
-                                    📍 {property.address}
-                                </p>
+                                <p className="text-sm text-gray-600 mb-3 line-clamp-1">📍 {property.address}</p>
 
-                                {/* Características */}
                                 <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
                                     <span>🛏️ {property.bedrooms} hab.</span>
                                     <span>🚿 {property.bathrooms} baños</span>
                                     <span>📐 {property.area} m²</span>
                                 </div>
 
-                                {/* Features tags */}
                                 <div className="flex flex-wrap gap-1 mb-4">
-                                    {property.features.slice(0, 3).map((feature, index) => (
-                                        <span key={index} className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                                            {feature}
-                                        </span>
+                                    {property.features.slice(0, 3).map((feature, idx) => (
+                                        <span key={idx} className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">{feature}</span>
                                     ))}
-                                    {property.features.length > 3 && (
-                                        <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                                            +{property.features.length - 3} más
-                                        </span>
-                                    )}
+                                    {property.features.length > 3 && <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">+{property.features.length - 3} más</span>}
                                 </div>
 
-                                {/* Arquitecto */}
-                                <div className="text-xs text-gray-500 mb-4">
-                                    Arquitecto: <span className="font-medium">{property.architect}</span>
-                                </div>
+                                <div className="text-xs text-gray-500 mb-4">Arquitecto: <span className="font-medium">{property.architect}</span></div>
 
-                                {/* Botones de acción */}
                                 <div className="flex space-x-2">
-                                    <Link
-                                        href={`/client/apartments/${property.id}`}
-                                        className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
-                                    >
-                                        Ver Detalles
-                                    </Link>
-                                    {property.vrTour && (
-                                        <button className="px-3 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 text-sm font-medium">
-                                            🎮 3D
-                                        </button>
-                                    )}
+                                    <Link href={`/client/apartments/${property.id}`} className="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">Ver Detalles</Link>
+                                    {property.vrTour && <button className="px-3 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 text-sm font-medium">🎮 3D</button>}
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
             ) : (
-                /* Estado vacío */
                 <div className="text-center py-12">
                     <div className="text-6xl mb-4">🔍</div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron departamentos</h3>
@@ -399,13 +309,7 @@ export default function ClientDashboard() {
                     <button
                         onClick={() => {
                             setSearchTerm('');
-                            setFilters({
-                                priceRange: [0, 1000000],
-                                bedrooms: 'all',
-                                minArea: 0,
-                                maxArea: 500,
-                                sortBy: 'newest'
-                            });
+                            setFilters({ priceRange: [0, 1000000], bedrooms: 'all', minArea: 0, maxArea: 500, sortBy: 'newest' });
                         }}
                         className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
                     >

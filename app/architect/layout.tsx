@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function ArchitectLayout({
     children,
@@ -12,7 +13,7 @@ export default function ArchitectLayout({
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const pathname = usePathname();
-
+    const { signOut } = useAuth()
     const navigation = [
         { name: 'Dashboard', href: '/architect/dashboard', icon: '🏠' },
         { name: 'Departamentos', href: '/architect/apartments', icon: '🏢' },
@@ -81,9 +82,12 @@ export default function ArchitectLayout({
                         <div className="flex items-center">
                             <div className="ml-3">
                                 <p className="text-sm font-medium text-gray-700">Arquitecto</p>
-                                <Link href="/login" className="text-xs font-medium text-gray-500 hover:text-gray-700">
-                                    Cerrar sesión
-                                </Link>
+                                <button
+                onClick={signOut}
+                className="text-sm text-gray-500 hover:text-gray-800 transition"
+            >
+                Cerrar sesión
+            </button>
                             </div>
                         </div>
                     </div>

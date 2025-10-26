@@ -40,7 +40,6 @@ export default function LoginPage() {
             // 3️⃣ Redirección según rol
             const role = userData?.role || 'client';
             if (role === 'architect') router.push('/architect/dashboard');
-            else if (role === 'admin') router.push('/admin/dashboard');
             else router.push('/client/dashboard');
 
         } catch (err: any) {

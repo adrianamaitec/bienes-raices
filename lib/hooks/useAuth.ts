@@ -1,14 +1,15 @@
 // hooks/useAuth.ts
 import { useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { supabase } from '../supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
+import { useRouter } from 'next/navigation'
 
 export function useAuth() {
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
+    const router = useRouter()
 
     useEffect(() => {
-        // Obtener sesión actual
         const getSession = async () => {
             const { data: { session } } = await supabase.auth.getSession()
             setUser(session?.user ?? null)
@@ -17,9 +18,8 @@ export function useAuth() {
 
         getSession()
 
-        // Escuchar cambios de auth state
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            async (_event, session) => {
                 setUser(session?.user ?? null)
                 setLoading(false)
             }
@@ -30,6 +30,7 @@ export function useAuth() {
 
     const signOut = async () => {
         await supabase.auth.signOut()
+        router.push('/login')
     }
 
     return { user, loading, signOut }
