@@ -1,37 +1,32 @@
 // hooks/useAuth.ts
-import { useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabaseClient'
-import { useRouter } from 'next/navigation'
+"use client";
+import { useState, useEffect } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 export function useAuth() {
-    const [user, setUser] = useState<User | null>(null)
-    const [loading, setLoading] = useState(true)
-    const router = useRouter()
+  const [user, setUser] = useState<User | null>(null);
 
-    useEffect(() => {
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            setUser(session?.user ?? null)
-            setLoading(false)
-        }
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
 
-        getSession()
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (_event, session) => {
-                setUser(session?.user ?? null)
-                setLoading(false)
-            }
-        )
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-        return () => subscription.unsubscribe()
-    }, [])
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
 
-    const signOut = async () => {
-        await supabase.auth.signOut()
-        router.push('/login')
-    }
-
-    return { user, loading, signOut }
+  return { user, signOut };
 }

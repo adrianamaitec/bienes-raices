@@ -19,6 +19,7 @@ export default function ArchitectLayout({
         { name: 'Departamentos', href: '/architect/apartments', icon: '🏢' },
         { name: 'Usuarios', href: '/architect/users', icon: '👥' },
         { name: 'Perfil', href: '/architect/profile', icon: '👤' },
+        { name: 'Versiones Modelos', href: '/architect/models', icon: '🏢' },
     ];
 
     const isActive = (href: string) => pathname === href;

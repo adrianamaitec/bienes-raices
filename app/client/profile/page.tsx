@@ -415,14 +415,6 @@ export default function ClientProfile() {
                             <h3 className="text-lg font-medium text-gray-900 mb-4">Información del Sistema</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span className="font-medium text-gray-700">ID de usuario:</span>
-                                    <p className="text-gray-600 font-mono text-xs mt-1">{userData.id}</p>
-                                </div>
-                                <div>
-                                    <span className="font-medium text-gray-700">Rol:</span>
-                                    <p className="text-gray-600 capitalize">{userData.role}</p>
-                                </div>
-                                <div>
                                     <span className="font-medium text-gray-700">Fecha de creación:</span>
                                     <p className="text-gray-600">{formatDate(userData.created_at)}</p>
                                 </div>
