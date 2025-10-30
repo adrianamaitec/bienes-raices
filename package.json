@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.921.0",
     "@heroui/react": "^2.7.2",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.4.0",

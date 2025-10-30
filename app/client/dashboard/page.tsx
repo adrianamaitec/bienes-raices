@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 interface Property {
     id: number;
@@ -37,6 +37,7 @@ export default function ClientDashboard() {
     useEffect(() => {
         const fetchProperties = async () => {
             try {
+                const supabase = supabaseBrowser();
                 setLoading(true);
                 // Traer departamentos y modelos asociados
                 const { data: depts, error: deptError } = await supabase

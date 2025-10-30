@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 interface Favorite {
   id: number;
@@ -23,6 +23,7 @@ interface Favorite {
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
+  const supabase = supabaseBrowser();
 
   useEffect(() => {
     const fetchFavorites = async () => {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { supabase } from "@/lib/supabaseClient";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 const ModelViewer = dynamic(
   () => import("@/components/ModelViewer/ModelViewer"),
@@ -50,7 +50,7 @@ export default function PropertyDetail() {
   const [showContactForm, setShowContactForm] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-
+  const supabase = supabaseBrowser();
   // ✅ Verificar si el usuario está logueado
   useEffect(() => {
     const fetchProperty = async () => {

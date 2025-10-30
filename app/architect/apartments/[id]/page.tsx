@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
+import { supabaseBrowser } from '@/lib/supabase/client';
 import ModelViewer from '@/components/ModelViewer/ModelViewer';
 
 interface Department {
@@ -51,7 +51,7 @@ export default function EditDepartment() {
     const [modelFile, setModelFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
-
+    const supabase = supabaseBrowser();
     useEffect(() => {
         if (departmentId) {
             fetchDepartmentData();
