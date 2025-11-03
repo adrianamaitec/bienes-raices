@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Sign } from "crypto";
 import SignOutButton from "@/components/Buttons/SignOutButton";
+import { User } from "@heroui/react";
+import UserNavbarInfo from "@/components/Home/Navbar/UserNavbarInfo";
 
 export default function ArchitectLayout({
   children,
@@ -91,7 +93,7 @@ export default function ArchitectLayout({
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <div className="flex items-center">
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">Arquitecto</p>
+                <UserNavbarInfo />
                 <SignOutButton/>
               </div>
             </div>

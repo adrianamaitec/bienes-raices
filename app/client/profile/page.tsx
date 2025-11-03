@@ -81,6 +81,24 @@ export default function ClientProfile() {
     }
   };
 
+  const deactivateAccount = async () => {
+    if (!confirm("¿Seguro que deseas desactivar tu cuenta?")) return;
+
+    const { error } = await supabase
+      .from("users")
+      .update({ is_active: false })
+      .eq("id", userData.id);
+
+    if (error) {
+      alert("Error al desactivar la cuenta");
+      return;
+    }
+
+    // Cerrar sesión
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
   const handleImageUpload = async (file: File) => {
     try {
       setUploading(true);
@@ -315,6 +333,12 @@ export default function ClientProfile() {
             className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 font-medium disabled:opacity-50 transition-colors"
           >
             {isEditing ? "Cancelar" : "✏️ Editar Perfil"}
+          </button>
+          <button
+            onClick={deactivateAccount}
+            className="mt-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Desactivar Cuenta
           </button>
         </div>
 

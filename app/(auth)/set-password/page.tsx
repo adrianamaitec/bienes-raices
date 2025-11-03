@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 export default function SetPasswordPage() {
     const [password, setPassword] = useState('');
@@ -12,7 +12,7 @@ export default function SetPasswordPage() {
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<any>(null);
     const router = useRouter();
-
+    const supabase = supabaseBrowser();
     useEffect(() => {
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();

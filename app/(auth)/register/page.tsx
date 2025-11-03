@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/client';
+import { supabaseBrowser } from '@/lib/supabase/client';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -16,7 +16,7 @@ export default function RegisterPage() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
+const supabase = supabaseBrowser();
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);

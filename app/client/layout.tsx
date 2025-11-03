@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth'
 import { Sign } from 'node:crypto';
 import SignOutButton from '@/components/Buttons/SignOutButton';
+import UserNavbarInfo from '@/components/Home/Navbar/UserNavbarInfo';
 
 export default function ClientLayout({
     children,
@@ -57,10 +58,7 @@ export default function ClientLayout({
 
                         {/* Acciones del header */}
                         <div className="flex items-center space-x-4">
-                            {/* Notificaciones */}
-                            <button className="p-2 text-gray-400 hover:text-gray-500">
-                                <span className="text-xl">🔔</span>
-                            </button>
+                            <UserNavbarInfo />
 
                             <SignOutButton />
 

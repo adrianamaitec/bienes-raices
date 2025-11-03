@@ -66,7 +66,23 @@ export default function ArchitectProfile() {
       setLoading(false);
     }
   };
+  const deactivateAccount = async () => {
+    if (!confirm("¿Seguro que deseas desactivar tu cuenta?")) return;
 
+    const { error } = await supabase
+      .from("users")
+      .update({ is_active: false })
+      .eq("id", architectData.id);
+
+    if (error) {
+      alert("Error al desactivar la cuenta");
+      return;
+    }
+
+    // Cerrar sesión
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -315,7 +331,12 @@ export default function ArchitectProfile() {
             >
               {isEditing ? "Cancelar" : "Editar"}
             </button>
-
+            <button
+              onClick={deactivateAccount}
+              className="mt-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Desactivar Cuenta
+            </button>
             {isEditing && (
               <button
                 type="submit"
