@@ -1,17 +1,15 @@
-// app/auth/callback/route.ts
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
-    const requestUrl = new URL(request.url)
-    const code = requestUrl.searchParams.get('code')
+export async function GET(req: Request) {
+  const url = new URL(req.url)
+  const code = url.searchParams.get('code')
+  const supabase = createClient() // SSR client que maneja cookies
 
-    if (code) {
-        const supabase = createRouteHandlerClient({ cookies })
-        await supabase.auth.exchangeCodeForSession(code)
-    }
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) console.error('Error intercambiando el código:', error)
+  }
 
-    // URL to redirect to after sign in process completes
-    return NextResponse.redirect(`${requestUrl.origin}/set-password`)
+  return NextResponse.redirect(`${url.origin}/set-password`)
 }
