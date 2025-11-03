@@ -337,6 +337,32 @@ export default function ArchitectProfile() {
             >
               Desactivar Cuenta
             </button>
+            <button
+              onClick={() => router.push("/set-password")}
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+            >
+              <span className="text-2xl">🔑</span>
+              <div>
+                <p className="font-medium text-gray-900">Cambiar Contraseña</p>
+                <p className="text-sm text-gray-600">
+                  Actualiza tu contraseña de acceso
+                </p>
+              </div>
+            </button>
+
+            {/* Cambiar Email */}
+            <button
+              onClick={() => router.push("/change-email")}
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+            >
+              <span className="text-2xl">✉️</span>
+              <div>
+                <p className="font-medium text-gray-900">Cambiar Email</p>
+                <p className="text-sm text-gray-600">
+                  Actualiza tu correo electrónico de cuenta
+                </p>
+              </div>
+            </button>
             {isEditing && (
               <button
                 type="submit"

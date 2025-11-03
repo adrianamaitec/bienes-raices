@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
 export default function SetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId'); // ✅ Recibimos el userId desde la URL
-
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const userId = searchParams.get("userId"); // ✅ Recibimos el userId desde la URL
+  const supabase = supabaseBrowser();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,37 +18,39 @@ export default function SetPasswordPage() {
     e.preventDefault();
     setError(null);
 
-    if (!userId) {
-      setError('No se pudo obtener el usuario');
-      return;
-    }
-
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError("Las contraseñas no coinciden");
       return;
     }
 
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+      setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch('/api/set-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, password })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || 'Error estableciendo contraseña');
-
-      alert('✅ Contraseña establecida correctamente');
-      router.push('/login'); // Redirige a login
-
+      if (userId) {
+        // Invitado → usar endpoint seguro con service_role
+        const res = await fetch("/api/set-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, password }),
+        });
+        const data = await res.json();
+        if (!res.ok)
+          throw new Error(data.error || "Error estableciendo contraseña");
+        alert("✅ Contraseña establecida correctamente");
+        router.push("/login");
+      } else {
+        // Usuario logueado → cambiar su propia contraseña
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        alert("✅ Contraseña establecida correctamente");
+        router.push("/architect/profile");
+      }
+      // Redirige a login
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -58,7 +61,9 @@ export default function SetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Establecer Contraseña</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Establecer Contraseña
+        </h2>
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded mb-4">
@@ -68,7 +73,9 @@ export default function SetPasswordPage() {
 
         <form onSubmit={handleSetPassword} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nueva Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nueva Contraseña
+            </label>
             <input
               type="password"
               value={password}
@@ -81,7 +88,9 @@ export default function SetPasswordPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Contraseña</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirmar Contraseña
+            </label>
             <input
               type="password"
               value={confirmPassword}
@@ -97,7 +106,7 @@ export default function SetPasswordPage() {
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Estableciendo contraseña...' : 'Establecer Contraseña'}
+            {loading ? "Estableciendo contraseña..." : "Establecer Contraseña"}
           </button>
         </form>
       </div>
