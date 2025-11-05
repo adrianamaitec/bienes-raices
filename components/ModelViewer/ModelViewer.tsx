@@ -1,95 +1,101 @@
-// components/ModelViewer/SimpleModelViewer.tsx
-'use client';
+// components/ModelViewer/SimpleModelViewer.tsx (alternativa)
+"use client";
 
-import { Suspense, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
-import { Group } from 'three';
+import { useEffect, useRef, useState } from "react";
 
-interface SimpleModelViewerProps {
-    url: string;
-    width?: number | string;
-    height?: number | string;
+interface ModelViewerProps {
+  url: string;
 }
 
-function SimpleModel({ url }: { url: string }) {
-    const { scene } = useGLTF(url) as any;
-    const groupRef = useRef<Group>(null);
+export default function SimpleModelViewer({ url }: ModelViewerProps) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    useFrame((state, delta) => {
-        if (groupRef.current) {
-            groupRef.current.rotation.y += delta * 0.2;
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Verificar que el archivo existe
+        const response = await fetch(url, { method: "HEAD" });
+        if (!response.ok) {
+          throw new Error(`Archivo no accesible: ${response.status}`);
         }
-    });
 
+        // Verificar tipo de archivo
+        const fileExtension = url.split(".").pop()?.toLowerCase();
+        if (!["glb", "gltf"].includes(fileExtension || "")) {
+          throw new Error(
+            `Formato no soportado: ${fileExtension}. Solo GLB/GLTF`
+          );
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ Error verificando modelo:", err);
+        setError(err instanceof Error ? err.message : "Error desconocido");
+        setLoading(false);
+      }
+    };
+
+    loadModel();
+  }, [url]);
+
+  if (error) {
     return (
-        <group ref={groupRef}>
-            <primitive
-                object={scene}
-                scale={1.5}
-                position={[0, 0, 0]}
-            />
-        </group>
-    );
-}
-
-function LoadingSpinner() {
-    return (
-        <mesh rotation={[0, 0, 0]}>
-            <torusGeometry args={[1, 0.4, 16, 100]} />
-            <meshStandardMaterial color="#3b82f6" transparent opacity={0.7} />
-        </mesh>
-    );
-}
-
-export default function ModelViewer({
-    url,
-    width = "100%",
-    height = "400px"
-}: SimpleModelViewerProps) {
-    return (
-        <div
-            className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 overflow-hidden"
-            style={{ width, height }}
-        >
-            <Canvas
-                camera={{
-                    position: [8, 8, 8],
-                    fov: 50
-                }}
-            >
-                {/* Luces básicas */}
-                <ambientLight intensity={0.8} />
-                <directionalLight
-                    position={[10, 10, 5]}
-                    intensity={1}
-                    color="#ffffff"
-                />
-                <hemisphereLight
-                    intensity={0.5}
-                    color="#ffffff"
-                    groundColor="#aaaaaa"
-                />
-
-                {/* Modelo */}
-                <Suspense fallback={<LoadingSpinner />}>
-                    <SimpleModel url={url} />
-                </Suspense>
-
-                {/* Controles */}
-                <OrbitControls
-                    enablePan={true}
-                    enableZoom={true}
-                    enableRotate={true}
-                    minDistance={3}
-                    maxDistance={15}
-                />
-            </Canvas>
-
-            {/* Instrucciones */}
-            <div className="absolute bottom-3 left-3 right-3 bg-black bg-opacity-70 text-white text-xs p-2 rounded text-center">
-                💡 Arrastra para rotar • Rueda del mouse para zoom • Click derecho para mover
-            </div>
+      <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+        <p className="text-red-600 font-medium">
+          ❌ No se puede cargar el modelo 3D
+        </p>
+        <p className="text-sm text-red-500 mt-1">{error}</p>
+        <div className="mt-3 flex gap-2">
+          <button
+            onClick={() => window.open(url, "_blank")}
+            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          >
+            Descargar modelo
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+          >
+            Reintentar
+          </button>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="w-full h-96 bg-gray-100 rounded-lg border border-gray-200 flex flex-col items-center justify-center">
+      {loading ? (
+        <>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="mt-2 text-gray-600">Cargando modelo 3D...</span>
+        </>
+      ) : (
+        <div className="text-center p-4">
+          <div className="text-4xl mb-2">🎮</div>
+          <p className="text-gray-700 font-medium">Modelo 3D Listo</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Usa un visor 3D compatible para ver este modelo
+          </p>
+          <button
+            onClick={() =>
+              window.open(
+                `https://gltf-viewer.donmccurdy.com/#model=${encodeURIComponent(
+                  url
+                )}`,
+                "_blank"
+              )
+            }
+            className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+          >
+            Abrir en Visor Online
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }

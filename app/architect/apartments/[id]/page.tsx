@@ -73,7 +73,7 @@ export default function EditDepartment() {
       if (deptError) throw deptError;
       setDepartment(dept);
 
-      // Obtener modelos 3D
+      // Obtener modelos 3D - SOLO obtener datos, sin verificar URLs
       const { data: modelData, error: modelError } = await supabase
         .from("models")
         .select("*")
@@ -81,6 +81,8 @@ export default function EditDepartment() {
         .order("created_at", { ascending: false });
 
       if (modelError) throw modelError;
+
+      console.log(`🔍 Modelos cargados desde Supabase:`, modelData);
       setModels(modelData || []);
 
       // Obtener imágenes de la galería
@@ -219,26 +221,148 @@ export default function EditDepartment() {
       alert("Error al establecer imagen principal");
     }
   };
+  const handle3DModel = async (file: File) => {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("Usuario no autenticado");
 
-  // 🔹 Subir modelo 3D
+      // Subir nuevo modelo a R2
+      console.log(`📤 Subiendo nuevo modelo para departamento ${departmentId}`);
+      const newModelUrl = await upload3DModel(file);
+      console.log(`✅ Modelo subido a R2: ${newModelUrl}`);
+
+      // Verificar si ya existe un modelo en la BD
+      const { data: existingModel, error: fetchError } = await supabase
+        .from("models")
+        .select("id, storage_url")
+        .eq("department_id", departmentId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existingModel) {
+        console.log(
+          `🔄 Modelo existente encontrado (ID: ${existingModel.id}), actualizando...`
+        );
+
+        // Actualizar registro existente
+        const { data: updatedModel, error: updateError } = await supabase
+          .from("models")
+          .update({
+            storage_url: newModelUrl,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingModel.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+
+        console.log(`✅ Modelo 3D actualizado correctamente:`, updatedModel);
+
+        // Actualizar estado local con el modelo actualizado
+        setModels([updatedModel]);
+      } else {
+        console.log("🆕 No hay modelo existente, creando nuevo...");
+
+        // Crear nuevo modelo
+        const { data: newModel, error: insertError } = await supabase
+          .from("models")
+          .insert({
+            department_id: departmentId,
+            storage_url: newModelUrl,
+            user_id: user.id,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+
+        console.log("✅ Modelo 3D creado correctamente:", newModel);
+
+        // Actualizar estado local con el nuevo modelo
+        setModels([newModel]);
+      }
+
+      // 🔹 VERIFICACIÓN: Asegurar que solo hay un modelo
+      await ensureSingleModel();
+
+      // 🔹 RECARGAR datos desde Supabase para asegurar consistencia
+      await fetchDepartmentData();
+
+      console.log("✅ Proceso de modelo 3D completado correctamente");
+    } catch (error: any) {
+      console.error("❌ Error al subir modelo 3D:", error);
+      alert(`Error al subir modelo: ${error.message}`);
+      throw error; // 🔥 IMPORTANTE: Re-lanzar el error para que handleSave lo capture
+    }
+  };
+
+  // 🔹 FUNCIÓN CRÍTICA: Asegurar que solo hay UN modelo por departamento
+  const ensureSingleModel = async () => {
+    try {
+      const { data: allModels, error } = await supabase
+        .from("models")
+        .select("id, created_at")
+        .eq("department_id", departmentId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      if (allModels && allModels.length > 1) {
+        const [latest, ...toDelete] = allModels;
+        const deleteIds = toDelete.map((m) => m.id);
+
+        console.log(`⚠️ Eliminando ${deleteIds.length} modelos duplicados...`);
+
+        const { error: deleteError } = await supabase
+          .from("models")
+          .delete()
+          .in("id", deleteIds);
+
+        if (deleteError) throw deleteError;
+
+        console.log(`✅ Modelos antiguos eliminados`);
+      }
+    } catch (error) {
+      console.error("❌ Error limpiando modelos duplicados:", error);
+    }
+  };
+
   const upload3DModel = async (file: File): Promise<string> => {
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("departmentId", String(departmentId));
 
+      console.log(`📤 Enviando modelo 3D a API...`);
+
       const res = await fetch("/api/uploadModel", {
         method: "POST",
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Error al subir el modelo");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.error || `Error ${res.status}: ${res.statusText}`
+        );
+      }
 
       const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Error desconocido al subir el modelo");
+      }
+
+      console.log(`✅ Modelo 3D subido exitosamente: ${data.url}`);
       return data.url;
     } catch (error: any) {
-      console.error("Error subiendo modelo 3D:", error);
-      throw new Error("No se pudo subir el modelo 3D");
+      console.error("❌ Error subiendo modelo 3D:", error);
+      throw new Error(`No se pudo subir el modelo 3D: ${error.message}`);
     }
   };
 
@@ -250,6 +374,8 @@ export default function EditDepartment() {
     setUploading(true);
 
     try {
+      console.log(`💾 Iniciando guardado del departamento ${departmentId}`);
+
       // 1️⃣ Actualizar datos básicos del departamento
       const { error: deptError } = await supabase
         .from("departments")
@@ -266,15 +392,19 @@ export default function EditDepartment() {
           bed: department.bed,
           bathrooms: department.bathrooms,
           status: department.status,
-          // image_url se mantiene igual a menos que se cambie la imagen principal
         })
         .eq("id", departmentId);
 
       if (deptError) throw deptError;
 
+      console.log(`✅ Datos básicos actualizados`);
+
       // 2️⃣ Subir nuevas imágenes y guardar en la galería
       if (newImages.length > 0) {
-        const uploadPromises = newImages.map(async (file) => {
+        console.log(`📸 Subiendo ${newImages.length} nuevas imágenes...`);
+
+        const uploadPromises = newImages.map(async (file, index) => {
+          console.log(`🔄 Subiendo imagen ${index + 1}/${newImages.length}`);
           const imageUrl = await uploadImageToStorage(file);
 
           const { error: imageError } = await supabase.from("images").insert({
@@ -283,39 +413,101 @@ export default function EditDepartment() {
           });
 
           if (imageError) throw imageError;
+          console.log(`✅ Imagen ${index + 1} guardada: ${imageUrl}`);
         });
 
         await Promise.all(uploadPromises);
+        console.log(`✅ Todas las imágenes subidas exitosamente`);
       }
 
       // 3️⃣ Subir nuevo modelo 3D si existe
       if (modelFile) {
-        const modelUrl = await upload3DModel(modelFile);
+        console.log(`🎯 Subiendo nuevo modelo 3D...`);
+        await handle3DModel(modelFile);
+        console.log(`✅ Modelo 3D actualizado exitosamente`);
 
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        const { error: modelError } = await supabase.from("models").insert({
-          department_id: departmentId,
-          storage_url: modelUrl,
-          user_id: user?.id || null,
-        });
-
-        if (modelError) throw modelError;
+        // Limpiar el archivo seleccionado después de subir
+        setModelFile(null);
       }
 
       setUploading(false);
-      alert("Departamento actualizado correctamente");
+      setLoading(false);
+
+      alert("✅ Departamento actualizado correctamente");
       router.push("/architect/apartments");
-    } catch (error) {
-      console.error("Error guardando departamento:", error);
-      alert("Error al guardar los cambios");
+    } catch (error: any) {
+      console.error("❌ Error guardando departamento:", error);
+      alert(`❌ Error al guardar los cambios: ${error.message}`);
       setUploading(false);
       setLoading(false);
     }
   };
+  const handleDeleteCurrentModel = async () => {
+    if (
+      !models.length ||
+      !confirm("¿Estás seguro de que quieres eliminar el modelo 3D actual?")
+    ) {
+      return;
+    }
 
+    try {
+      setLoading(true);
+
+      // Obtener el modelo actual
+      const currentModel = models[0];
+
+      // Eliminar archivo específico de R2 (NO toda la carpeta)
+      try {
+        // Extraer el nombre del archivo de la URL
+        const fileName = currentModel.storage_url.split("/").pop();
+        if (fileName) {
+          const fileKey = `departments/${departmentId}/${fileName}`;
+
+          const deleteRes = await fetch("/api/deleteModel", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fileKeys: [fileKey], // 🔥 Solo eliminar este archivo específico
+              cleanFolder: false, // 🔥 NO limpiar toda la carpeta
+            }),
+          });
+
+          if (!deleteRes.ok) {
+            console.warn("⚠️ No se pudo eliminar el archivo de R2");
+          } else {
+            console.log(`🗑️ Archivo eliminado de R2: ${fileKey}`);
+          }
+        }
+      } catch (storageError) {
+        console.warn(
+          "⚠️ Error eliminando archivo de storage, continuando...",
+          storageError
+        );
+      }
+
+      // Eliminar de la base de datos - SOLO el modelo actual
+      const { error } = await supabase
+        .from("models")
+        .delete()
+        .eq("id", currentModel.id);
+
+      if (error) throw error;
+
+      // Actualizar estado local
+      setModels([]);
+      setModelFile(null);
+
+      alert("✅ Modelo 3D eliminado correctamente");
+      await fetchDepartmentData();
+    } catch (error) {
+      console.error("❌ Error eliminando modelo:", error);
+      alert("Error al eliminar el modelo 3D");
+    } finally {
+      setLoading(false);
+    }
+  };
   // Componentes auxiliares para inputs
   const InputField = ({
     label,
@@ -625,60 +817,84 @@ export default function EditDepartment() {
             </div>
           )}
         </div>
-
         {/* Modelo 3D */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Modelo 3D
           </h2>
 
-          {/* Modelos existentes */}
+          {/* Mostrar solo el modelo actual (debería ser solo uno) */}
           {models.length > 0 && (
             <div className="mb-4">
               <h3 className="text-lg font-medium text-gray-700 mb-3">
-                Modelos existentes
+                Modelo 3D Actual
               </h3>
-              {models.map((model) => (
-                <div
-                  key={model.id}
-                  className="mb-4 p-4 border border-gray-200 rounded-lg"
-                >
-                  <ModelViewer url={model.storage_url} />
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <p className="text-sm text-gray-600 mb-2">
+                  <strong>Archivo:</strong>{" "}
+                  {models[0].storage_url.split("/").pop()}
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Subido: {new Date(models[0].created_at).toLocaleDateString()}
+                </p>
+                <ModelViewer url={models[0].storage_url} />
+
+                {/* Botón para eliminar modelo actual */}
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCurrentModel()}
+                    className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                  >
+                    🗑️ Eliminar Modelo Actual
+                  </button>
                 </div>
-              ))}
+              </div>
             </div>
           )}
 
-          {/* Modelo 3D */}
-          <div>
+          {/* Subir nuevo modelo (reemplaza el existente) */}
+          <div className="mt-6">
             <h3 className="text-lg font-medium text-gray-700 mb-3">
-              Agregar nuevo modelo 3D
+              {models.length > 0 ? "Reemplazar Modelo 3D" : "Agregar Modelo 3D"}
             </h3>
+
+            {!modelFile ? (
+              <button
+                type="button"
+                onClick={() =>
+                  document.getElementById("modelFileInput")?.click()
+                }
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              >
+                {models.length > 0
+                  ? "Seleccionar nuevo modelo"
+                  : "Subir modelo 3D"}
+              </button>
+            ) : (
+              <div className="mt-4 p-4 border border-gray-200 rounded-lg bg-blue-50">
+                <p className="text-sm text-blue-600 mb-2">
+                  ✅ Nuevo modelo seleccionado:{" "}
+                  <strong>{modelFile.name}</strong>
+                </p>
+                <p className="text-xs text-blue-500">
+                  {models.length > 0
+                    ? "Este reemplazará el modelo actual al guardar los cambios."
+                    : "Este será el modelo 3D del departamento."}
+                </p>
+              </div>
+            )}
+
+            {/* Input oculto */}
             <input
+              id="modelFileInput"
               type="file"
               accept=".glb,.gltf"
               onChange={(e) =>
                 e.target.files && setModelFile(e.target.files[0])
               }
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="hidden"
             />
-            {models.map((model) => (
-              <div
-                key={model.id}
-                className="mb-4 p-4 border border-gray-200 rounded-lg"
-              >
-                <ModelViewer url={model.storage_url} />
-              </div>
-            ))}
-
-            {modelFile && (
-              <div className="mt-4 p-4 border border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">
-                  Vista previa del nuevo modelo:
-                </p>
-                <ModelViewer url={URL.createObjectURL(modelFile)} />
-              </div>
-            )}
           </div>
         </div>
 
