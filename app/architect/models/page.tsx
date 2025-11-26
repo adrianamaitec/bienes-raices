@@ -344,12 +344,7 @@ export default function ModelsManagement() {
               <div className="bg-gray-50 p-4">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-md font-semibold text-gray-900">Versiones del Modelo</h4>
-                  <Link
-                    href={`/architect/models/${model.id}/upload-version`}
-                    className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    ➕ Nueva Versión
-                  </Link>
+                  
                 </div>
 
                 <div className="grid gap-3">
@@ -375,14 +370,8 @@ export default function ModelsManagement() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          {/* Preview del Modelo */}
-                          <button
-                            className="inline-flex items-center p-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            title="Vista Previa 3D"
-                            onClick={() => window.open(version.url, '_blank')}
-                          >
-                            👁️
-                          </button>
+
+                          
 
                           {/* Descargar */}
                           <a

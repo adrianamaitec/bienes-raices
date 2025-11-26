@@ -71,7 +71,7 @@ export default function VersionNotesEditor({
           notas: notes.trim(),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", versionId);
+        .eq("id", Number(versionId));
 
       if (updateError) throw updateError;
 
