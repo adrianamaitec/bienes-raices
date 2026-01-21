@@ -16,19 +16,20 @@ export type User = {
 // Tipo para la tabla `departments`
 export type Department = {
     id: number;
-    name: string;
-    description: string;
-    price: number;
-    size: number;
-    street: string;
-    zone: string;
-    floor: number;
-    bed: number;
-    bathrooms: number
-    latitude: number;
-    longitude: number;
-    image_url?: string; // Opcional
-    created_at: string; // Fecha en formato ISO
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    tamano: number;
+    calle: string;
+    zona: string;
+    piso: number;
+    dormitorios: number;
+    banos: number;
+    latitud: number;
+    longitud: number;
+    url_imagen?: string; // Opcional
+    creado_en: string; // Fecha en formato ISO
+    status: "available" | "sold" | "reserved";
 };
 
 // Tipo para la tabla `images`

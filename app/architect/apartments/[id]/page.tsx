@@ -65,7 +65,7 @@ export default function EditDepartment() {
 
       // Obtener departamento
       const { data: dept, error: deptError } = await supabase
-        .from("departments")
+        .from("departamentos")
         .select("*")
         .eq("id", departmentId)
         .single();
@@ -209,7 +209,7 @@ export default function EditDepartment() {
 
     try {
       const { error } = await supabase
-        .from("departments")
+        .from("departamentos")
         .update({ image_url: imageUrl })
         .eq("id", departmentId);
 
@@ -378,7 +378,7 @@ export default function EditDepartment() {
 
       // 1️⃣ Actualizar datos básicos del departamento
       const { error: deptError } = await supabase
-        .from("departments")
+        .from("departamentos")
         .update({
           name: department.name,
           description: department.description,

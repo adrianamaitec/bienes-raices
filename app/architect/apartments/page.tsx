@@ -3,27 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
-
-interface Department {
-  id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  size: number | null;
-  street: string | null;
-  zone: string | null;
-  floor: number | null;
-  latitude: number | null;
-  longitude: number | null;
-  image_url: string | null;
-  created_at: string;
-  bed: number | null;
-  bathrooms: number | null;
-  status: "available" | "sold" | "reserved";
-}
+import { Department as Departamento } from "@/lib/types/types";
 
 export default function PropertiesManagement() {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<Departamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -39,12 +22,13 @@ export default function PropertiesManagement() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("departments")
+        .from("departamentos")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("creado_en", { ascending: false });
 
       if (error) throw error;
       setDepartments(data || []);
+
     } catch (error) {
       console.error("Error cargando departamentos:", error);
     } finally {
@@ -59,9 +43,9 @@ export default function PropertiesManagement() {
   // 🔹 Filtrado
   const filteredDepartments = departments.filter((department) => {
     const matchesSearch =
-      department.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      department.street?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      department.zone?.toLowerCase().includes(searchTerm.toLowerCase());
+      department.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.calle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.zona?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || department.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -94,8 +78,8 @@ export default function PropertiesManagement() {
   const handleArchive = async (id: number) => {
     try {
       const { error } = await supabase
-        .from("departments")
-        .update({ status: "reserved" }) // o 'inactive' si agregas ese valor al enum
+        .from("departamentos")
+        .update({ estado: "reserved" }) // o 'inactive' si agregas ese valor al enum
         .eq("id", id);
 
       if (error) throw error;
@@ -119,7 +103,7 @@ export default function PropertiesManagement() {
     if (!departmentToDelete) return;
     try {
       const { error } = await supabase
-        .from("departments")
+        .from("departamentos")
         .delete()
         .eq("id", departmentToDelete);
 
@@ -140,10 +124,10 @@ export default function PropertiesManagement() {
       currency: "PEN",
     }).format(price);
 
-  const getAddress = (department: Department) => {
+  const getAddress = (department: Departamento) => {
     const parts = [];
-    if (department.street) parts.push(department.street);
-    if (department.zone) parts.push(department.zone);
+    if (department.calle) parts.push(department.calle);
+    if (department.zona) parts.push(department.zona);
     return parts.join(", ") || "Dirección no especificada";
   };
 
@@ -207,10 +191,10 @@ export default function PropertiesManagement() {
                 <div className="px-4 py-4 sm:px-6 flex justify-between hover:bg-gray-50">
                   <div className="flex items-center">
                     <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden">
-                      {department.image_url ? (
+                      {department.url_imagen ? (
                         <img
-                          src={department.image_url}
-                          alt={department.name}
+                          src={department.url_imagen}
+                          alt={department.nombre}
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -221,14 +205,14 @@ export default function PropertiesManagement() {
                     </div>
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-blue-600">
-                        {department.name} {getStatusBadge(department.status)}
+                        {department.nombre} {getStatusBadge(department.status)}
                       </h3>
                       <p className="text-sm text-gray-500">
                         {getAddress(department)}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {department.size} m² • {department.bed} hab •{" "}
-                        {department.bathrooms} baños
+                        {department.tamano} m² • {department.dormitorios} hab •{" "}
+                        {department.banos} baños
                       </p>
                     </div>
                   </div>
@@ -236,7 +220,7 @@ export default function PropertiesManagement() {
                   <div className="flex items-center space-x-2">
                     <div className="text-right">
                       <div className="text-lg font-bold">
-                        {formatPrice(department.price)}
+                        {formatPrice(department.precio)}
                       </div>
                     </div>
                     <Link

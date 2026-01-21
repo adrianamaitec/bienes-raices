@@ -8,10 +8,10 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 // Interfaces basadas en tu schema
 interface Department {
   id: number;
-  name: string;
-  image_url?: string;
-  description?: string;
-  status: string;
+  nombre: string;
+  url_imagen?: string;
+  descripcion?: string;
+  estado: string;
 }
 
 interface Model {
@@ -50,9 +50,9 @@ export default function ModelsManagement() {
         
         // Cargar departamentos
         const { data: departmentsData, error: deptError } = await supabase
-          .from('departments')
-          .select('id, name, image_url, description, status')
-          .order('name');
+          .from('departamentos')
+          .select('id, nombre, url_imagen, descripcion, estado')
+          .order('nombre');
 
         if (deptError) throw deptError;
 
@@ -61,7 +61,7 @@ export default function ModelsManagement() {
           .from('models')
           .select(`
             *,
-            department:departments (*)
+            department:departamentos (*)
           `)
           .order('created_at', { ascending: false });
 
@@ -107,7 +107,7 @@ export default function ModelsManagement() {
 
   // Filtrar modelos
   const filteredModels = models.filter(model => {
-    const matchesSearch = model.department?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = model.department?.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = selectedDepartment === 'all' || model.department_id.toString() === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
@@ -268,7 +268,7 @@ export default function ModelsManagement() {
               <option value="all">Todos los Departamentos</option>
               {departments.map(dept => (
                 <option key={dept.id} value={dept.id}>
-                  {dept.name}
+                  {dept.nombre}
                 </option>
               ))}
             </select>
@@ -293,10 +293,10 @@ export default function ModelsManagement() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
-                    {model.department?.image_url ? (
+                    {model.department?.url_imagen ? (
                       <img 
-                        src={model.department.image_url} 
-                        alt={model.department.name}
+                        src={model.department.url_imagen} 
+                        alt={model.department.nombre}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
                     ) : (
@@ -305,22 +305,22 @@ export default function ModelsManagement() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {model.department?.name || 'Departamento no encontrado'}
+                      {model.department?.nombre || 'Departamento no encontrado'}
                     </h3>
                     <p className="text-sm text-gray-600">
                       {model.versions?.length || 0} versión{model.versions?.length !== 1 ? 'es' : ''} • 
                       Creado: {formatDate(model.created_at)}
                     </p>
-                    {model.department?.status && (
+                    {model.department?.estado && (
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${
-                        model.department.status === 'available' 
+                        model.department.estado === 'available' 
                           ? 'bg-green-100 text-green-800'
-                          : model.department.status === 'sold'
+                          : model.department.estado === 'sold'
                           ? 'bg-red-100 text-red-800'
                           : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {model.department.status === 'available' ? 'Disponible' : 
-                         model.department.status === 'sold' ? 'Vendido' : 'Reservado'}
+                        {model.department.estado === 'available' ? 'Disponible' : 
+                         model.department.estado === 'sold' ? 'Vendido' : 'Reservado'}
                       </span>
                     )}
                   </div>

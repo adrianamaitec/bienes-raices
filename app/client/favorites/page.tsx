@@ -8,15 +8,18 @@ interface Favorite {
   id: number;
   department: {
     id: number;
-    name: string;
-    price: number;
-    street: string | null;
-    image_url: string | null;
-    status: string;
-    zone: string | null;
-    bed: number | null;
-    bathrooms: number | null;
-    size: number | null;
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    tamano: number;
+    calle: string;
+    zona: string;
+    piso: number;
+    dormitorios: number;
+    banos: number;
+    latitud: number;
+    longitud: number;
+    url_imagen?: string;
   };
 }
 
@@ -38,7 +41,7 @@ export default function FavoritesPage() {
       const { data, error } = await supabase
         .from("favorites")
         .select(
-          "id, department:department_id ( id, name, price, street, zone, bed, bathrooms, size, image_url, status )"
+          "id, department:department_id ( id, nombre, precio, calle, zona, dormitorios, banos, tamano, url_imagen )",
         )
         .eq("user_id", user.id);
 
@@ -95,8 +98,8 @@ export default function FavoritesPage() {
             className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition"
           >
             <img
-              src={fav.department.image_url || "/placeholder.jpg"}
-              alt={fav.department.name}
+              src={fav.department.url_imagen || "/placeholder.jpg"}
+              alt={fav.department.nombre}
               className="w-full h-56 object-cover"
             />
             <div className="p-4">
@@ -105,19 +108,19 @@ export default function FavoritesPage() {
                   href={`/client/apartments/${fav.department.id}`}
                   className="hover:text-blue-600"
                 >
-                  {fav.department.name}
+                  {fav.department.nombre}
                 </Link>
               </h3>
               <p className="text-sm text-gray-600 mb-2">
-                📍 {fav.department.street || "Dirección no disponible"}
+                📍 {fav.department.calle || "Dirección no disponible"}
               </p>
               <div className="text-blue-600 font-bold mb-3">
-                {formatPrice(fav.department.price)}
+                {formatPrice(fav.department.precio)}
               </div>
               <div className="flex items-center text-sm text-gray-600 space-x-4 mb-3">
-                <span>🛏️ {fav.department.bed ?? "-"} hab.</span>
-                <span>🚿 {fav.department.bathrooms ?? "-"} baños</span>
-                <span>📐 {fav.department.size ?? "-"} m²</span>
+                <span>🛏️ {fav.department.dormitorios ?? "-"} hab.</span>
+                <span>🚿 {fav.department.banos ?? "-"} baños</span>
+                <span>📐 {fav.department.tamano ?? "-"} m²</span>
               </div>
               <Link
                 href={`/client/apartments/${fav.department.id}`}

@@ -134,7 +134,7 @@ export default function NewProperty() {
     try {
       // 1️⃣ Crear el departamento sin imagen aún
       const { data: departmentData, error: departmentError } = await supabase
-        .from("departments")
+        .from("departamentos")
         .insert({
           name: formData.name,
           description: formData.description || null,
@@ -188,7 +188,7 @@ export default function NewProperty() {
       // 4️⃣ Actualizar departamento con la imagen principal
       if (primaryImageUrl) {
         const { error: updateError } = await supabase
-          .from("departments")
+          .from("departamentos")
           .update({ image_url: primaryImageUrl })
           .eq("id", departmentId);
 

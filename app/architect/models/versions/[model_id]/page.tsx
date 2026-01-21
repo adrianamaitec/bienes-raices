@@ -12,10 +12,10 @@ import router from "next/router";
 
 interface Department {
   id: number;
-  name: string;
-  description?: string;
-  image_url?: string;
-  status: string;
+  nombre: string;
+  descripcion?: string;
+  url_imagen?: string;
+  estado: string;
 }
 
 interface Model {
@@ -73,12 +73,12 @@ export default function VersionPreview() {
               department_id,
               storage_url,
               created_at,
-              departments:department_id (
+              departamentos:department_id (
                 id,
-                name,
-                description,
-                status,
-                image_url
+                nombre,
+                descripcion,
+                estado,
+                url_imagen
               )
             )
           `
@@ -114,10 +114,10 @@ export default function VersionPreview() {
         const departmentObj: Department | null = d
           ? {
               id: d.id,
-              name: d.name,
-              description: d.description,
-              image_url: d.image_url,
-              status: d.status,
+              nombre: d.nombre,
+              descripcion: d.descripcion,
+              url_imagen: d.url_imagen,
+              estado: d.estado,
             }
           : null;
 
@@ -289,7 +289,7 @@ export default function VersionPreview() {
               <div className="h-6 w-px bg-gray-300"></div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {department?.name || `Modelo ${model?.id || "N/A"}`} - Versión{" "}
+                  {department?.nombre || `Modelo ${model?.id || "N/A"}`} - Versión{" "}
                   {version.numero_version}
                 </h1>
                 <p className="text-sm text-gray-600">
@@ -321,17 +321,17 @@ export default function VersionPreview() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Información del Proyecto
                 </h3>
-                {department?.image_url && (
+                {department?.url_imagen && (
                   <img
-                    src={department.image_url}
-                    alt={department.name}
+                    src={department.url_imagen}
+                    alt={department.nombre}
                     className="w-full h-32 object-cover rounded-md mb-3"
                   />
                 )}
 
-                {department?.description && (
+                {department?.descripcion && (
                   <p className="text-sm text-gray-600 mt-1 line-clamp-3">
-                    {department.description}
+                    {department.descripcion}
                   </p>
                 )}
               </div>
@@ -377,7 +377,7 @@ export default function VersionPreview() {
                         <ModelDownloader
                           originalUrl={version.url}
                           modelName={
-                            department?.name ||
+                            department?.nombre ||
                             `modelo-${model?.id || "version"}`
                           }
                           versionNumber={version.numero_version}
@@ -476,14 +476,14 @@ export default function VersionPreview() {
                     <div className="flex justify-between">
                       <dt className="text-gray-600">Departamento:</dt>
                       <dd className="text-gray-900">
-                        {department?.name || "N/A"}
+                        {department?.nombre || "N/A"}
                       </dd>
                     </div>
                     <div className="flex justify-between">
                       <dt className="text-gray-600">Estado:</dt>
                       <dd className="text-gray-900">
-                        {department?.status
-                          ? getStatusBadge(department.status)
+                        {department?.estado
+                          ? getStatusBadge(department.estado)
                           : "N/A"}
                       </dd>
                     </div>

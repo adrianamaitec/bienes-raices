@@ -39,7 +39,7 @@ export function useModelsWithVersions(supabaseUrl: string, supabaseKey: string) 
             setLoading(true);
             // Traer departamentos
             const deptRes = await axios.get<Department[]>(
-                `${supabaseUrl}/rest/v1/departments?select=*`,
+                `${supabaseUrl}/rest/v1/departamentos?select=*`,
                 {
                     headers: {
                         apikey: supabaseKey,
@@ -52,7 +52,7 @@ export function useModelsWithVersions(supabaseUrl: string, supabaseKey: string) 
 
             // Traer modelos
             const modelRes = await axios.get<Model[]>(
-                `${supabaseUrl}/rest/v1/modelos?select=*,departments(*)`,
+                `${supabaseUrl}/rest/v1/modelos?select=*,departamentos(*)`,
                 {
                     headers: {
                         apikey: supabaseKey,

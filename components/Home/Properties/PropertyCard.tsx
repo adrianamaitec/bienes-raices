@@ -14,9 +14,9 @@ const PropertyCard = ({ apartment }: Props) => {
     return (
         <div className='bg-white overflow-hidden group rounded-lg cursor-pointer shadow-lg '>
             <div className='relative'>
-                <Image src={apartment.image_url || ''} alt={apartment.name} width={300} height={300} className='h-[300px] w-full object-cover group-hover:scale-110 transition-all duration-300' />
+                <Image src={apartment.url_imagen || ''} alt={apartment.nombre} width={300} height={300} className='h-[300px] w-full object-cover group-hover:scale-110 transition-all duration-300' />
                 <h1 className='px-6 absolute bottom-4 left-4 py-1.5 text-sm bg-black w-fit text-white rounded-lg '>
-                    <span className='text-base font-bold'>${apartment.price}</span>
+                    <span className='text-base font-bold'>${apartment.precio}</span>
                 </h1>
                 <div className='flex items-center space-x-1 px-6 absolute top-4 left-4 py-2 text-sm bg-rose-600 w-fit text-white rounded-md font-bold'>
                     <MdElectricBolt />
@@ -25,24 +25,24 @@ const PropertyCard = ({ apartment }: Props) => {
 
             </div>
             <div className='p-5'>
-                <h1 className='mt-4 group-hover:underline text-gray-900 font-bold'>{apartment.name}</h1>
-                <p className='text-sm text-gray-500 mt-3'>{apartment.street} {apartment.zone}</p>
+                <h1 className='mt-4 group-hover:underline text-gray-900 font-bold'>{apartment.nombre}</h1>
+                <p className='text-sm text-gray-500 mt-3'>{apartment.calle} {apartment.zona}</p>
                 <div className='flex items-center my-6 justify-between w-full lg:w-[80%]'>
                     <div className='flex items-center space-x-2'>
                         <FaBed className='text-red-500' />
-                        <p className='text-xs text-gray-600'>{apartment.bed}</p>
+                        <p className='text-xs text-gray-600'>{apartment.dormitorios}</p>
                     </div>
                     <div className='flex items-center space-x-2'>
                         <FaBath className='text-red-500' />
-                        <p className='text-xs text-gray-600'>{apartment.bathrooms}</p>
+                        <p className='text-xs text-gray-600'>{apartment.banos}</p>
                     </div>
                     <div className='flex items-center space-x-2'>
                         <FaStairs className='text-red-500' />
-                        <p className='text-xs text-gray-600'>{apartment.floor}</p>
+                        <p className='text-xs text-gray-600'>{apartment.piso}</p>
                     </div>
                     <div className='flex items-center space-x-2'>
                         <FaSquare className='text-red-500' />
-                        <p className='text-xs text-gray-600'>{apartment.size} m2</p>
+                        <p className='text-xs text-gray-600'>{apartment.tamano} m2</p>
                     </div>
 
                 </div>

@@ -41,29 +41,29 @@ export default function ClientDashboard() {
                 setLoading(true);
                 // Traer departamentos y modelos asociados
                 const { data: depts, error: deptError } = await supabase
-                    .from('departments')
+                    .from('departamentos')
                     .select('*, models(storage_url)')
-                    .order('created_at', { ascending: false });
+                    .order('creado_en', { ascending: false });
 
                 if (deptError) throw deptError;
 
                 // Mapear a la estructura Property
                 const mapped: Property[] = (depts || []).map((d: any) => ({
                     id: d.id,
-                    name: d.name,
-                    address: [d.street, d.zone].filter(Boolean).join(', '),
-                    price: Number(d.price) || 0,
-                    area: d.size || 0,
-                    bedrooms: d.bed || 0,
-                    bathrooms: d.bathrooms || 0,
-                    images: d.image_url ? [d.image_url] : [],
+                    name: d.nombre || 'Departamento Sin Nombre',
+                    address: [d.calle, d.zona].filter(Boolean).join(', '),
+                    price: Number(d.precio) || 0,
+                    area: d.tamano || 0,
+                    bedrooms: d.dormitorios || 0,
+                    bathrooms: d.banos || 0,
+                    images: d.url_imagen ? [d.url_imagen] : [],
                     isFavorite: false, // implementar por usuario si lo necesitas
-                    features: (d.features && Array.isArray(d.features)) ? d.features : [], // si tienes un campo features JSON/texto
-                    status: d.status || 'available',
+                    features: (d.descripcion && Array.isArray(d.descripcion)) ? d.descripcion : [], // si tienes un campo features JSON/texto
+                    status: d.estatus || 'available',
                     architect: d.architect || 'N/A',
                     vrTour: Boolean(d.models && d.models.length > 0)
                 }));
-
+                console.log('Fetched properties:', mapped);
                 setProperties(mapped);
             } catch (err) {
                 console.error('Error fetching properties:', err);
@@ -78,9 +78,9 @@ export default function ClientDashboard() {
     // Filtrar y ordenar en cliente (igual que tu mock original)
     const filteredProperties = properties
         .filter(property =>
-            property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            property.features.some(feature =>
+            (property.name||``).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (property.address||``).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (property.features||[]).some(feature =>
                 feature.toLowerCase().includes(searchTerm.toLowerCase())
             )
         )
