@@ -9,20 +9,20 @@ import { uploadToR2 } from "@/lib/r2Client";
 
 interface Department {
   id: number;
-  name: string;
-  description: string | null;
-  price: number;
-  size: number | null;
-  street: string | null;
-  zone: string | null;
-  floor: number | null;
-  latitude: number | null;
-  longitude: number | null;
-  image_url: string | null;
-  bed: number | null;
-  bathrooms: number | null;
-  status: "available" | "sold" | "reserved";
-  created_at: string;
+  nombre: string;
+  descripcion: string | null;
+  precio: number;
+  tamano: number | null;
+  calle: string | null;
+  zona: string | null;
+  piso: number | null;
+  latitud: number | null;
+  longitud: number | null;
+  url_imagen: string | null;
+  dormitorios: number | null;
+  banos: number | null;
+  estado: "available" | "sold" | "reserved";
+  creado_en: string;
 }
 
 interface Model {
@@ -82,7 +82,7 @@ export default function EditDepartment() {
 
       if (modelError) throw modelError;
 
-      console.log(`🔍 Modelos cargados desde Supabase:`, modelData);
+      console.log(`🔍 Modelos cargados desde Supabase:`, modelData, department);
       setModels(modelData || []);
 
       // Obtener imágenes de la galería
@@ -194,7 +194,7 @@ export default function EditDepartment() {
       setImages((prev) => prev.filter((img) => img.id !== imageId));
 
       // Si era la imagen principal, limpiar el campo
-      if (department?.image_url === imageUrl) {
+      if (department?.url_imagen === imageUrl) {
         setDepartment((prev) => (prev ? { ...prev, image_url: null } : null));
       }
     } catch (error) {
@@ -205,22 +205,18 @@ export default function EditDepartment() {
 
   // 🔹 Establecer imagen como principal
   const setPrimaryImage = async (imageUrl: string) => {
-    if (!department) return;
+    const { error } = await supabase
+      .from("departamentos")
+      .update({ url_imagen: imageUrl })
+      .eq("id", departmentId);
 
-    try {
-      const { error } = await supabase
-        .from("departamentos")
-        .update({ image_url: imageUrl })
-        .eq("id", departmentId);
-
-      if (error) throw error;
-
-      setDepartment((prev) => (prev ? { ...prev, image_url: imageUrl } : null));
-    } catch (error) {
-      console.error("Error estableciendo imagen principal:", error);
-      alert("Error al establecer imagen principal");
+    if (!error) {
+      setDepartment((prev) =>
+        prev ? { ...prev, url_imagen: imageUrl } : null,
+      );
     }
   };
+
   const handle3DModel = async (file: File) => {
     try {
       const {
@@ -245,7 +241,7 @@ export default function EditDepartment() {
 
       if (existingModel) {
         console.log(
-          `🔄 Modelo existente encontrado (ID: ${existingModel.id}), actualizando...`
+          `🔄 Modelo existente encontrado (ID: ${existingModel.id}), actualizando...`,
         );
 
         // Actualizar registro existente
@@ -348,7 +344,7 @@ export default function EditDepartment() {
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(
-          errorData.error || `Error ${res.status}: ${res.statusText}`
+          errorData.error || `Error ${res.status}: ${res.statusText}`,
         );
       }
 
@@ -380,18 +376,18 @@ export default function EditDepartment() {
       const { error: deptError } = await supabase
         .from("departamentos")
         .update({
-          name: department.name,
-          description: department.description,
-          price: department.price,
-          size: department.size,
-          street: department.street,
-          zone: department.zone,
-          floor: department.floor,
-          latitude: department.latitude,
-          longitude: department.longitude,
-          bed: department.bed,
-          bathrooms: department.bathrooms,
-          status: department.status,
+          nombre: department.nombre,
+          descripcion: department.descripcion,
+          precio: department.precio,
+          tamano: department.tamano,
+          calle: department.calle,
+          zona: department.zona,
+          piso: department.piso,
+          latitud: department.latitud,
+          longitud: department.longitud,
+          dormitorios: department.dormitorios,
+          banos: department.banos,
+          estado: department.estado,
         })
         .eq("id", departmentId);
 
@@ -483,7 +479,7 @@ export default function EditDepartment() {
       } catch (storageError) {
         console.warn(
           "⚠️ Error eliminando archivo de storage, continuando...",
-          storageError
+          storageError,
         );
       }
 
@@ -590,54 +586,57 @@ export default function EditDepartment() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
               label="Nombre del Departamento *"
-              value={department.name}
-              onChange={(v) => setDepartment({ ...department, name: v })}
+              value={department.nombre}
+              onChange={(v) => setDepartment({ ...department, nombre: v })}
             />
 
             <InputField
               label="Precio (PEN) *"
               type="number"
-              value={department.price}
+              value={department.precio}
               onChange={(v) =>
-                setDepartment({ ...department, price: Number(v) })
+                setDepartment({ ...department, precio: Number(v) })
               }
             />
 
             <InputField
               label="Tamaño (m²)"
               type="number"
-              value={department.size}
+              value={department.tamano}
               onChange={(v) =>
-                setDepartment({ ...department, size: v ? Number(v) : null })
+                setDepartment({ ...department, tamano: v ? Number(v) : null })
               }
             />
 
             <InputField
               label="Piso"
               type="number"
-              value={department.floor}
+              value={department.piso}
               onChange={(v) =>
-                setDepartment({ ...department, floor: v ? Number(v) : null })
+                setDepartment({ ...department, piso: v ? Number(v) : null })
               }
             />
 
             <InputField
               label="Habitaciones"
               type="number"
-              value={department.bed}
+              value={department.dormitorios}
               onChange={(v) =>
-                setDepartment({ ...department, bed: v ? Number(v) : null })
+                setDepartment({
+                  ...department,
+                  dormitorios: v ? Number(v) : null,
+                })
               }
             />
 
             <InputField
               label="Baños"
               type="number"
-              value={department.bathrooms}
+              value={department.banos}
               onChange={(v) =>
                 setDepartment({
                   ...department,
-                  bathrooms: v ? Number(v) : null,
+                  banos: v ? Number(v) : null,
                 })
               }
             />
@@ -645,8 +644,8 @@ export default function EditDepartment() {
 
           <TextareaField
             label="Descripción"
-            value={department.description || ""}
-            onChange={(v) => setDepartment({ ...department, description: v })}
+            value={department.descripcion || ""}
+            onChange={(v) => setDepartment({ ...department, descripcion: v })}
           />
         </div>
 
@@ -658,23 +657,23 @@ export default function EditDepartment() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
               label="Calle"
-              value={department.street}
-              onChange={(v) => setDepartment({ ...department, street: v })}
+              value={department.calle}
+              onChange={(v) => setDepartment({ ...department, calle: v })}
             />
 
             <InputField
               label="Zona/Distrito"
-              value={department.zone}
-              onChange={(v) => setDepartment({ ...department, zone: v })}
+              value={department.zona}
+              onChange={(v) => setDepartment({ ...department, zona: v })}
             />
 
             <InputField
               label="Latitud"
               type="number"
               step="0.000001"
-              value={department.latitude}
+              value={department.latitud}
               onChange={(v) =>
-                setDepartment({ ...department, latitude: v ? Number(v) : null })
+                setDepartment({ ...department, latitud: v ? Number(v) : null })
               }
             />
 
@@ -682,11 +681,11 @@ export default function EditDepartment() {
               label="Longitud"
               type="number"
               step="0.000001"
-              value={department.longitude}
+              value={department.longitud}
               onChange={(v) =>
                 setDepartment({
                   ...department,
-                  longitude: v ? Number(v) : null,
+                  longitud: v ? Number(v) : null,
                 })
               }
             />
@@ -698,9 +697,9 @@ export default function EditDepartment() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Estado</h2>
           <select
             className="block w-full md:w-64 border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
-            value={department.status}
+            value={department.estado}
             onChange={(e) =>
-              setDepartment({ ...department, status: e.target.value as any })
+              setDepartment({ ...department, estado: e.target.value as any })
             }
           >
             <option value="available">Disponible</option>
@@ -728,7 +727,7 @@ export default function EditDepartment() {
                       src={image.image_url}
                       alt={`Imagen ${image.id}`}
                       className={`w-full h-32 object-cover rounded-lg border-2 ${
-                        department.image_url === image.image_url
+                        department.url_imagen === image.image_url
                           ? "border-blue-500"
                           : "border-gray-200"
                       }`}
@@ -740,12 +739,12 @@ export default function EditDepartment() {
                           type="button"
                           onClick={() => setPrimaryImage(image.image_url)}
                           className={`p-1 rounded ${
-                            department.image_url === image.image_url
+                            department.url_imagen === image.image_url
                               ? "bg-blue-500 text-white"
                               : "bg-white text-gray-700"
                           }`}
                           title={
-                            department.image_url === image.image_url
+                            department.url_imagen === image.image_url
                               ? "Imagen principal"
                               : "Hacer principal"
                           }
@@ -765,7 +764,7 @@ export default function EditDepartment() {
                       </div>
                     </div>
 
-                    {department.image_url === image.image_url && (
+                    {department.url_imagen === image.image_url && (
                       <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
                         Principal
                       </div>
