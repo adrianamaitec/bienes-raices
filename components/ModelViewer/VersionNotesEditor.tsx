@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { MdModeEditOutline } from "react-icons/md";
 
 interface VersionNotesEditorProps {
   versionId: number;
@@ -141,9 +142,9 @@ export default function VersionNotesEditor({
           </label>
           <button
             onClick={handleStartEdit}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            className="text-xs text-blue-600 hover:text-blue-700 font-medium align-self-start flex items-center gap-1"
           >
-            ✏️ Editar
+            <MdModeEditOutline /> Editar
           </button>
         </div>
         <div

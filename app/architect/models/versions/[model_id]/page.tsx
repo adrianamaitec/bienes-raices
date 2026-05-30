@@ -81,7 +81,7 @@ export default function VersionPreview() {
                 url_imagen
               )
             )
-          `
+          `,
           )
           .eq("id", Number(versionId))
           .single();
@@ -165,7 +165,7 @@ export default function VersionPreview() {
     if (
       !versionData ||
       !confirm(
-        "¿Estás seguro de que quieres eliminar esta versión? Esta acción no se puede deshacer."
+        "¿Estás seguro de que quieres eliminar esta versión? Esta acción no se puede deshacer.",
       )
     ) {
       return;
@@ -289,23 +289,13 @@ export default function VersionPreview() {
               <div className="h-6 w-px bg-gray-300"></div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {department?.nombre || `Modelo ${model?.id || "N/A"}`} - Versión{" "}
-                  {version.numero_version}
+                  {department?.nombre || `Modelo ${model?.id || "N/A"}`} -
+                  Versión {version.numero_version}
                 </h1>
                 <p className="text-sm text-gray-600">
                   Vista previa de la versión específica
                 </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              {model && (
-                <Link
-                  href={`/architect/models/`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  📋 Ver Todas las Versiones
-                </Link>
-              )}
             </div>
           </div>
         </div>
@@ -314,7 +304,7 @@ export default function VersionPreview() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Panel Lateral - Información */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 overflow-visible">
             <div className="bg-white rounded-lg shadow border border-gray-200">
               {/* Información del Proyecto */}
               <div className="p-4 border-b border-gray-200">
@@ -337,7 +327,7 @@ export default function VersionPreview() {
               </div>
 
               {/* Información de la Versión Actual */}
-              <div className="p-4">
+              <div className="p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Versión {version.numero_version}
                 </h3>
@@ -368,37 +358,34 @@ export default function VersionPreview() {
                       onSave={handleNotesSave}
                     />
                   </div>
-                  <div className="pt-3 border-t border-gray-200">
-                    <div className="flex space-x-2">
-                      <div className="p-4 border-b border-gray-200">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                          Descargar Modelo
-                        </h3>
-                        <ModelDownloader
-                          originalUrl={version.url}
-                          modelName={
-                            department?.nombre ||
-                            `modelo-${model?.id || "version"}`
-                          }
-                          versionNumber={version.numero_version}
-                        />
-                        <p className="text-xs text-gray-500 mt-3">
-                          Formatos compatibles con software de arquitectura como
-                          Revit, 3ds Max, SketchUp, etc.
-                        </p>
-                        {/* Acciones Peligrosas */}
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <button
-                            onClick={handleDeleteVersion}
-                            className="w-full text-center text-xs text-red-600 hover:text-red-700 py-2 border border-red-200 rounded hover:bg-red-50 transition-colors"
-                          >
-                            🗑️ Eliminar Esta Versión
-                          </button>
-                          <p className="text-xs text-gray-500 mt-1 text-center">
-                            Esta acción no se puede deshacer
-                          </p>
-                        </div>
-                      </div>
+                  {/* Descargar Modelo - Sección corregida */}
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                      Descargar Modelo
+                    </h3>
+                    <ModelDownloader
+                      originalUrl={version.url}
+                      modelName={
+                        department?.nombre || `modelo-${model?.id || "version"}`
+                      }
+                      versionNumber={version.numero_version}
+                    />
+                    <p className="text-xs text-gray-500 mt-3">
+                      Formatos compatibles con software de arquitectura como
+                      Revit, 3ds Max, SketchUp, etc.
+                    </p>
+
+                    {/* Acciones Peligrosas */}
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <button
+                        onClick={handleDeleteVersion}
+                        className="w-full text-center text-sm text-red-600 hover:text-red-700 py-2.5 border border-red-200 rounded-lg hover:bg-red-50 transition-colors duration-200"
+                      >
+                        🗑️ Eliminar Esta Versión
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Esta acción no se puede deshacer
+                      </p>
                     </div>
                   </div>
                 </div>

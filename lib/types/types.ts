@@ -29,7 +29,7 @@ export type Department = {
     longitud: number;
     url_imagen?: string; // Opcional
     creado_en: string; // Fecha en formato ISO
-    status: "available" | "sold" | "reserved";
+    status: "available" | "sold" | "reserved"| "archived"; // Estado del departamento
 };
 
 // Tipo para la tabla `images`

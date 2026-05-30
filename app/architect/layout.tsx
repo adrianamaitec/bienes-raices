@@ -9,6 +9,11 @@ import { Sign } from "crypto";
 import SignOutButton from "@/components/Buttons/SignOutButton";
 import { User } from "@heroui/react";
 import UserNavbarInfo from "@/components/Home/Navbar/UserNavbarInfo";
+import { RiHome9Fill } from "react-icons/ri";
+import { FaBuilding } from "react-icons/fa6";
+import { HiMiniUsers } from "react-icons/hi2";
+import { FaUser } from "react-icons/fa";
+import { SiBuildkite } from "react-icons/si";
 
 export default function ArchitectLayout({
   children,
@@ -19,11 +24,11 @@ export default function ArchitectLayout({
   const pathname = usePathname();
   const { signOut } = useAuth();
   const navigation = [
-    { name: "Dashboard", href: "/architect/dashboard", icon: "🏠" },
-    { name: "Departamentos", href: "/architect/apartments", icon: "🏢" },
-    { name: "Usuarios", href: "/architect/users", icon: "👥" },
-    { name: "Perfil", href: "/architect/profile", icon: "👤" },
-    { name: "Versiones Modelos", href: "/architect/models", icon: "🏢" },
+    { name: "Dashboard", href: "/architect/dashboard", icon: <RiHome9Fill className="size-6"/>},
+    { name: "Departamentos", href: "/architect/apartments", icon: <FaBuilding className="size-6" /> },
+    { name: "Versiones Modelos", href: "/architect/models", icon: <SiBuildkite className="size-6"/>},
+    { name: "Usuarios", href: "/architect/users", icon: <HiMiniUsers className="size-6" /> },
+    { name: "Perfil", href: "/architect/profile", icon: <FaUser className="size-6" /> },
   ];
 
   const isActive = (href: string) => pathname === href;

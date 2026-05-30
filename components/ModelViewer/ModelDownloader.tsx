@@ -2,6 +2,8 @@
 "use client";
 
 import { useState } from "react";
+import { MdFileDownload } from "react-icons/md";
+import { TbFile3D } from "react-icons/tb";
 
 interface ModelDownloaderProps {
   originalUrl: string;
@@ -30,14 +32,6 @@ export default function ModelDownloader({
 
   // Formatos de exportación para arquitectura
   const downloadFormats: DownloadFormat[] = [
-    {
-      name: "GLTF Original",
-      format: "gltf",
-      extension: "gltf",
-      icon: "📦",
-      description: "Formato estándar web con archivos separados",
-      supported: true,
-    },
     {
       name: "GLB Binario",
       format: "glb",
@@ -161,34 +155,39 @@ export default function ModelDownloader({
   return (
     <div className={`relative ${className}`}>
       {/* Botón principal de descarga */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col gap-2">
+        {" "}
+        {/* Cambiado: remove sm:flex-row */}
         <button
           onClick={handleQuickDownload}
           disabled={converting !== null}
-          className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
-          {converting ? (
+          {converting === "original" ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Convirtiendo...
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Descargando...</span>
             </>
           ) : (
-            <>📥 Descargar {originalFormat.extension.toUpperCase()}</>
+            <>
+              <MdFileDownload className="w-4 h-4" />
+              <span>Descargar GLB</span>
+            </>
           )}
         </button>
-
         <button
           onClick={() => setIsOpen(!isOpen)}
           disabled={converting !== null}
-          className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-sm font-medium rounded-lg shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
         >
-          🎛️ Más Formatos
+          <TbFile3D className="w-4 h-4" />
+          <span>Más Formatos</span>
         </button>
       </div>
 
       {/* Menú desplegable de formatos */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div className="absolute top-full left-0 mt-2 w-full min-w-[280px] sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
           <div className="p-4">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-900">
@@ -240,16 +239,7 @@ export default function ModelDownloader({
               ))}
             </div>
 
-            {/* Información adicional */}
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <span className="text-blue-600">💡</span>
-                <div className="text-xs text-blue-700">
-                  <strong>Nota:</strong> La conversión de formatos requiere un
-                  servicio backend. Esta es una demostración de la interfaz.
-                </div>
-              </div>
-            </div>
+            
           </div>
         </div>
       )}

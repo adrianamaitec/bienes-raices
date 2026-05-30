@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Department as Departamento } from "@/lib/types/types";
+import { FaPlus } from "react-icons/fa";
+import { RiHome9Fill } from "react-icons/ri";
+import { TbArchive, TbHomeEdit, TbTrash } from "react-icons/tb";
 
 export default function PropertiesManagement() {
   const [departments, setDepartments] = useState<Departamento[]>([]);
@@ -14,7 +17,7 @@ export default function PropertiesManagement() {
   >("all");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [departmentToDelete, setDepartmentToDelete] = useState<number | null>(
-    null
+    null,
   );
   const supabase = supabaseBrowser();
   // 🔹 Cargar departamentos
@@ -28,7 +31,6 @@ export default function PropertiesManagement() {
 
       if (error) throw error;
       setDepartments(data || []);
-
     } catch (error) {
       console.error("Error cargando departamentos:", error);
     } finally {
@@ -79,21 +81,17 @@ export default function PropertiesManagement() {
     try {
       const { error } = await supabase
         .from("departamentos")
-        .update({ estado: "reserved" }) // o 'inactive' si agregas ese valor al enum
+        .update({ estado: "archived" })
         .eq("id", id);
 
       if (error) throw error;
 
-      setDepartments((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, status: "reserved" } : d))
-      );
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
     } catch (error) {
       console.error("Error archivando departamento:", error);
       alert("No se pudo archivar el departamento");
     }
   };
-
-  // 🔹 Eliminar (borrado real)
   const handleDeleteClick = (id: number) => {
     setDepartmentToDelete(id);
     setShowDeleteModal(true);
@@ -147,7 +145,7 @@ export default function PropertiesManagement() {
           href="/architect/apartments/new"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
         >
-          ➕ Nuevo Departamento
+          <FaPlus className="mr-2"/> Nuevo Departamento
         </Link>
       </div>
 
@@ -199,7 +197,7 @@ export default function PropertiesManagement() {
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400 text-2xl">
-                          🏠
+                          <RiHome9Fill />
                         </div>
                       )}
                     </div>
@@ -228,21 +226,21 @@ export default function PropertiesManagement() {
                       title="Editar"
                       className="p-2 border rounded hover:bg-gray-100"
                     >
-                      ✏️
+                      <TbHomeEdit className="size-6"/>
                     </Link>
                     <button
                       onClick={() => handleArchive(department.id)}
                       className="p-2 border rounded hover:bg-yellow-100"
-                      title="Archivar (borrado lógico)"
+                      title="Archivar"
                     >
-                      📦
+                      <TbArchive className="size-6"/>
                     </button>
                     <button
                       onClick={() => handleDeleteClick(department.id)}
                       className="p-2 border rounded hover:bg-red-100"
-                      title="Eliminar definitivamente"
+                      title="Eliminar"
                     >
-                      🗑️
+                      <TbTrash className="size-6"/>
                     </button>
                   </div>
                 </div>

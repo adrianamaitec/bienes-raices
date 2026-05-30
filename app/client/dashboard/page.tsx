@@ -17,7 +17,7 @@ interface Property {
   images: string[];
   isFavorite: boolean;
   features: string[];
-  status: "available" | "sold" | "reserved";
+  status: "available" | "sold" | "reserved"|"archived";
   architect: string;
   vrTour: boolean;
 }
@@ -58,6 +58,7 @@ export default function ClientDashboard() {
     models ( storage_url )
   `,
           )
+          .eq("estado", "available")
           .order("creado_en", { ascending: false });
 
         if (deptError) throw deptError;
