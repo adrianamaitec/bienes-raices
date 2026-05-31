@@ -12,5 +12,5 @@ export default {
     extend: {},
   },
   darkMode: "class",
-  plugins: [heroui()],
+  plugins: [heroui() as unknown as any],
 } satisfies Config;
