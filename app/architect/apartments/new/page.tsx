@@ -11,8 +11,9 @@ interface ImageFile {
   isPrimary: boolean;
 }
 
-export default async function NewProperty() {
+export default function NewProperty() {
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<ImageFile[]>([]);
@@ -32,14 +33,7 @@ export default async function NewProperty() {
     bathrooms: "",
     status: "available" as "available" | "sold" | "reserved",
   });
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
 
-  if (userError || !user) {
-    throw new Error("Usuario no autenticado");
-  }
   // 🔹 Función para subir imagen al storage
   const uploadImageToStorage = async (
     file: File,
@@ -134,10 +128,17 @@ export default async function NewProperty() {
       alert("Por favor, selecciona al menos una imagen");
       return;
     }
-
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
     setLoading(true);
     setUploading(true);
-
+    getUser();
     try {
       // 1️⃣ Crear el departamento sin imagen aún
       const { data: departmentData, error: departmentError } = await supabase
@@ -156,7 +157,7 @@ export default async function NewProperty() {
           banos: formData.bathrooms ? parseInt(formData.bathrooms) : null,
           estado: formData.status,
           url_imagen: null,
-          arquitecto_id: user.id,
+          arquitecto_id: userId,
         })
         .select()
         .single();
