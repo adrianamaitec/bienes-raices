@@ -36,7 +36,7 @@ export default function NewProperty() {
   // 🔹 Función para subir imagen al storage
   const uploadImageToStorage = async (
     file: File,
-    departmentId: number
+    departmentId: number,
   ): Promise<string> => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${departmentId}/${Math.random()
@@ -116,7 +116,7 @@ export default function NewProperty() {
       prev.map((img, i) => ({
         ...img,
         isPrimary: i === index,
-      }))
+      })),
     );
   };
 
@@ -136,19 +136,19 @@ export default function NewProperty() {
       const { data: departmentData, error: departmentError } = await supabase
         .from("departamentos")
         .insert({
-          name: formData.name,
-          description: formData.description || null,
-          price: parseFloat(formData.price),
-          size: formData.size ? parseInt(formData.size) : null,
-          street: formData.street || null,
-          zone: formData.zone || null,
-          floor: formData.floor ? parseInt(formData.floor) : null,
-          latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-          longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-          bed: formData.bed ? parseInt(formData.bed) : null,
-          bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
-          status: formData.status,
-          image_url: null,
+          nombre: formData.name,
+          descripcion: formData.description || null,
+          precio: parseFloat(formData.price),
+          tamano: formData.size ? parseInt(formData.size) : null,
+          calle: formData.street || null,
+          zona: formData.zone || null,
+          piso: formData.floor ? parseInt(formData.floor) : null,
+          latitud: formData.latitude ? parseFloat(formData.latitude) : null,
+          longitud: formData.longitude ? parseFloat(formData.longitude) : null,
+          dormitorios: formData.bed ? parseInt(formData.bed) : null,
+          banos: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+          estado: formData.status,
+          url_imagen: null,
         })
         .select()
         .single();
@@ -180,7 +180,7 @@ export default function NewProperty() {
       if (!primaryImageUrl && images.length > 0) {
         const firstImageUrl = await uploadImageToStorage(
           images[0].file,
-          departmentId
+          departmentId,
         );
         primaryImageUrl = firstImageUrl;
       }
@@ -189,7 +189,9 @@ export default function NewProperty() {
       if (primaryImageUrl) {
         const { error: updateError } = await supabase
           .from("departamentos")
-          .update({ image_url: primaryImageUrl })
+          .update({
+            url_imagen: primaryImageUrl,
+          })
           .eq("id", departmentId);
 
         if (updateError) throw updateError;
@@ -209,7 +211,7 @@ export default function NewProperty() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setFormData({
       ...formData,
