@@ -11,7 +11,7 @@ interface ImageFile {
   isPrimary: boolean;
 }
 
-export default function NewProperty() {
+export default async function NewProperty() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -32,7 +32,14 @@ export default function NewProperty() {
     bathrooms: "",
     status: "available" as "available" | "sold" | "reserved",
   });
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
+  if (userError || !user) {
+    throw new Error("Usuario no autenticado");
+  }
   // 🔹 Función para subir imagen al storage
   const uploadImageToStorage = async (
     file: File,
@@ -77,8 +84,8 @@ export default function NewProperty() {
       }
 
       // Validar tamaño (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("La imagen no debe superar los 5MB");
+      if (file.size > 50 * 1024 * 1024) {
+        alert("La imagen no debe superar los 40MB");
         continue;
       }
 
@@ -149,6 +156,7 @@ export default function NewProperty() {
           banos: formData.bathrooms ? parseInt(formData.bathrooms) : null,
           estado: formData.status,
           url_imagen: null,
+          arquitecto_id: user.id,
         })
         .select()
         .single();

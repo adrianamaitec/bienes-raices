@@ -140,8 +140,8 @@ export default function EditDepartment() {
         continue;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        alert("La imagen no debe superar los 5MB");
+      if (file.size > 40 * 1024 * 1024) {
+        alert("La imagen no debe superar los 40MB");
         continue;
       }
 
@@ -329,37 +329,37 @@ export default function EditDepartment() {
   };
 
   const upload3DModel = async (file: File): Promise<string> => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("departmentId", String(departmentId));
+    const response = await fetch("/api/uploadModelUrl", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        departmentId,
+        fileName: file.name,
+        contentType: file.type,
+      }),
+    });
 
-      console.log(`📤 Enviando modelo 3D a API...`);
-
-      const res = await fetch("/api/uploadModel", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.error || `Error ${res.status}: ${res.statusText}`,
-        );
-      }
-
-      const data = await res.json();
-
-      if (!data.success) {
-        throw new Error(data.error || "Error desconocido al subir el modelo");
-      }
-
-      console.log(`✅ Modelo 3D subido exitosamente: ${data.url}`);
-      return data.url;
-    } catch (error: any) {
-      console.error("❌ Error subiendo modelo 3D:", error);
-      throw new Error(`No se pudo subir el modelo 3D: ${error.message}`);
+    if (!response.ok) {
+      throw new Error("No se pudo generar URL de subida");
     }
+
+    const { uploadUrl, publicUrl } = await response.json();
+
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error("Error subiendo archivo a R2");
+    }
+
+    return publicUrl;
   };
 
   // 🔹 Función principal para guardar
