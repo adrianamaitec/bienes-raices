@@ -41,9 +41,24 @@ export default function FavoritesPage() {
       const { data, error } = await supabase
         .from("favorites")
         .select(
-          "id, department:department_id ( id, nombre, precio, calle, zona, dormitorios, banos, tamano, url_imagen )",
+          `
+    id,
+    department:department_id (
+      id,
+      nombre,
+      precio,
+      calle,
+      zona,
+      dormitorios,
+      banos,
+      tamano,
+      url_imagen,
+      estado
+    )
+  `,
         )
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .in("department.estado", ["available", "reserved"]);
 
       if (error) {
         console.error("Error al obtener favoritos:", error);

@@ -13,7 +13,6 @@ interface ImageFile {
 
 export default function NewProperty() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<ImageFile[]>([]);
@@ -79,7 +78,7 @@ export default function NewProperty() {
 
       // Validar tamaño (max 5MB)
       if (file.size > 50 * 1024 * 1024) {
-        alert("La imagen no debe superar los 40MB");
+        alert("La imagen no debe superar los 50MB");
         continue;
       }
 
@@ -128,17 +127,16 @@ export default function NewProperty() {
       alert("Por favor, selecciona al menos una imagen");
       return;
     }
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      }
-    };
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("Debes iniciar sesión");
+      return;
+    }
     setLoading(true);
     setUploading(true);
-    getUser();
     try {
       // 1️⃣ Crear el departamento sin imagen aún
       const { data: departmentData, error: departmentError } = await supabase
@@ -157,7 +155,7 @@ export default function NewProperty() {
           banos: formData.bathrooms ? parseInt(formData.bathrooms) : null,
           estado: formData.status,
           url_imagen: null,
-          arquitecto_id: userId,
+          arquitecto_id: user.id,
         })
         .select()
         .single();
@@ -267,7 +265,7 @@ export default function NewProperty() {
               <p className="text-gray-600 mb-1">
                 Haz clic para seleccionar imágenes
               </p>
-              <p className="text-sm text-gray-500">PNG, JPG, JPEG hasta 5MB</p>
+              <p className="text-sm text-gray-500">PNG, JPG, JPEG hasta 50MB</p>
             </label>
           </div>
 
