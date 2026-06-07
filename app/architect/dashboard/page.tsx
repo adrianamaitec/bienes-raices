@@ -119,7 +119,7 @@ export default function ArchitectDashboard() {
           </button>
 
           <button
-            onClick={() => router.push("/architect/departments")}
+            onClick={() => router.push("/architect/apartments")}
             className="bg-green-600 text-white py-2 px-3 sm:px-4 rounded-md hover:bg-green-700 inline-flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium shadow-sm"
           >
             <FaBuilding className="w-3 h-3 sm:w-4 sm:h-4" />
