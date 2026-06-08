@@ -193,15 +193,6 @@ export default function UsersManagement() {
 
     return (
       <div className="flex justify-end gap-2">
-        {/* Ver perfil */}
-        <Link
-          href={`/architect/users/${user.id}`}
-          className="text-blue-600 hover:text-blue-900 p-1 rounded transition-colors"
-          title="Ver perfil"
-        >
-          <span className="text-lg">👁️</span>
-        </Link>
-
         {/* Acciones según estado */}
         {status === "pending" && user.role === "architect" && (
           <button
