@@ -1,5 +1,16 @@
+import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
+import { Roboto } from "next/font/google";
+import './globals.css';
 
+const font = Roboto({
+  weight: ["100", "300", "400", "500", "700", "900"],
+  subsets: ["latin"],
+});
+export const metadata: Metadata = {
+  title: "RealState - 3D",
+  description: "REALSTATE website with 3D models",
+};
 export default function RootLayout({
   children,
 }: {
@@ -7,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>
+      <body className={font.className}>
         <Providers>
           {children}
         </Providers>
