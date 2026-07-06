@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { MdModeEditOutline, MdOutlineCancel } from "react-icons/md";
+import { FaKey, FaRegEnvelope, FaUserSlash } from "react-icons/fa";
 
 interface ArchitectProfile {
   id: string;
@@ -327,21 +329,36 @@ export default function ArchitectProfile() {
             <button
               type="button"
               onClick={() => setIsEditing(!isEditing)}
-              className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
             >
-              {isEditing ? "Cancelar" : "Editar"}
+              {isEditing ? (
+                <>
+                  <span><MdOutlineCancel className="w-6 h-6" /></span>
+                  <span>Cancelar</span>
+                </>
+              ) : (
+                <>
+                  <span><MdModeEditOutline className="w-6 h-6" /></span>
+                  <span>Editar Perfil</span>
+                </>
+              )}
             </button>
             <button
               onClick={deactivateAccount}
-              className="mt-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-red-50 transition-colors text-left"
             >
+              <span>
+                <FaUserSlash className="w-6 h-6 mr-2" />
+              </span>
               Desactivar Cuenta
             </button>
             <button
               onClick={() => router.push("/set-password")}
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
             >
-              <span className="text-2xl">🔑</span>
+              <span className="text-2xl">
+                <FaKey className="w-6 h-6" />
+              </span>
               <div>
                 <p className="font-medium text-gray-900">Cambiar Contraseña</p>
                 <p className="text-sm text-gray-600">
@@ -355,7 +372,9 @@ export default function ArchitectProfile() {
               onClick={() => router.push("/change-email")}
               className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
             >
-              <span className="text-2xl">✉️</span>
+              <span className="text-2xl">
+                <FaRegEnvelope className="w-6 h-6" />
+              </span>
               <div>
                 <p className="font-medium text-gray-900">Cambiar Email</p>
                 <p className="text-sm text-gray-600">

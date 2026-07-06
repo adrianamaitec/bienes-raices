@@ -1,14 +1,13 @@
-// app/architect/models/versions/[version_id]/page.tsx
+// app/architect/models/versions/[model_id]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import ProModelViewer from "@/components/ModelViewer/ProModelViewer";
 import ModelDownloader from "@/components/ModelViewer/ModelDownloader";
 import VersionNotesEditor from "@/components/ModelViewer/VersionNotesEditor";
-import router from "next/router";
 
 interface Department {
   id: number;
@@ -44,7 +43,7 @@ export default function VersionPreview() {
   const params = useParams();
   const versionId = params.model_id as string;
   const supabase = supabaseBrowser();
-
+  const router = useRouter();
   const [versionData, setVersionData] = useState<VersionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -170,8 +169,21 @@ export default function VersionPreview() {
     ) {
       return;
     }
-
     try {
+      const fileKey = versionData.version.url.split(".r2.dev/")[1];
+
+      const r2Response = await fetch("/api/deleteModel", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileKeys: [fileKey],
+        }),
+      });
+
+      if (!r2Response.ok) throw new Error("Error eliminando archivo de R2");
+
       const { error } = await supabase
         .from("modelos_versiones")
         .delete()
@@ -179,19 +191,14 @@ export default function VersionPreview() {
 
       if (error) throw error;
 
-      alert("✅ Versión eliminada correctamente");
+      alert("Versión eliminada");
 
-      // Redirigir a la página del modelo
-      if (versionData.model) {
-        router.push(`/architect/models/${versionData.model.id}`);
-      } else {
-        router.push("/architect/models");
-      }
-    } catch (err: any) {
-      console.error("Error deleting version:", err);
-      alert("❌ Error al eliminar la versión: " + err.message);
+      router.push("/architect/models");
+    } catch (err) {
+      console.error(err);
     }
   };
+
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString("es-PE", {

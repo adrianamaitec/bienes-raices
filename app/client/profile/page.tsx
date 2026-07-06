@@ -4,6 +4,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { MdModeEditOutline, MdOutlineCancel } from "react-icons/md";
+import { FaKey, FaRegEnvelope, FaUserSlash } from "react-icons/fa";
 
 interface UserProfile {
   id: string;
@@ -272,9 +274,9 @@ export default function ClientProfile() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto ">
       {/* Header del perfil */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6 ">
         <div className="flex items-center space-x-6">
           <div className="flex-shrink-0 relative">
             {getAvatar()}
@@ -326,25 +328,45 @@ export default function ClientProfile() {
               </p>
             )}
           </div>
-
+        </div>
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-4">
           <button
             onClick={() => setIsEditing(!isEditing)}
             disabled={saving || uploading}
-            className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 font-medium disabled:opacity-50 transition-colors"
+            className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
           >
-            {isEditing ? "Cancelar" : "✏️ Editar Perfil"}
+            {isEditing ? (
+              <>
+                <span>
+                  <MdOutlineCancel className="w-6 h-6" />
+                </span>
+                <span>Cancelar</span>
+              </>
+            ) : (
+              <>
+                <span>
+                  <MdModeEditOutline className="w-6 h-6" />
+                </span>
+                <span>Editar Perfil</span>
+              </>
+            )}
           </button>
           <button
             onClick={deactivateAccount}
-            className="mt-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-red-50 transition-colors text-left"
           >
+            <span>
+              <FaUserSlash className="w-6 h-6 mr-2" />
+            </span>
             Desactivar Cuenta
           </button>
           <button
             onClick={() => router.push("/auth/set-password")}
             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
           >
-            <span className="text-2xl">🔑</span>
+            <span className="text-2xl">
+                <FaKey className="w-6 h-6" />
+              </span>
             <div>
               <p className="font-medium text-gray-900">Cambiar Contraseña</p>
               <p className="text-sm text-gray-600">
@@ -358,7 +380,9 @@ export default function ClientProfile() {
             onClick={() => router.push("/auth/change-email")}
             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
           >
-            <span className="text-2xl">✉️</span>
+            <span className="text-2xl">
+                <FaRegEnvelope className="w-6 h-6" />
+              </span>
             <div>
               <p className="font-medium text-gray-900">Cambiar Email</p>
               <p className="text-sm text-gray-600">
@@ -508,14 +532,14 @@ export default function ClientProfile() {
                     loadUserProfile(); // Recargar datos originales
                   }}
                   disabled={saving || uploading}
-                  className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 transition-colors"
+                  className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving || uploading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium disabled:opacity-50 transition-colors flex items-center"
+                  className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   {saving ? (
                     <>

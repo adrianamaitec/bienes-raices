@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.921.0",
+    "@aws-sdk/s3-request-presigner": "^3.1060.0",
     "@heroui/react": "^2.7.2",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.4.0",
@@ -23,7 +24,7 @@
     "autoprefixer": "^10.4.20",
     "axios": "^1.13.2",
     "draco3d": "^1.5.7",
-    "next": "15.1.11",
+    "next": "^16.2.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
